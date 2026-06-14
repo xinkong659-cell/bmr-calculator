@@ -473,12 +473,487 @@ body {
 .rest-input { width: 70px !important; }
 .cat-optgroup { font-weight: 700; color: var(--primary-dark); }
 
+
+/* ===== Auth Modal ===== */
+.auth-overlay {
+  display: none;
+  position: fixed;
+  z-index: 1000;
+  inset: 0;
+  background: rgba(0,0,0,0.5);
+  backdrop-filter: blur(4px);
+  align-items: center;
+  justify-content: center;
+}
+.auth-overlay.show { display: flex; }
+.auth-modal {
+  background: #fff;
+  border-radius: 16px;
+  padding: 32px 28px;
+  width: 100%;
+  max-width: 400px;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+  animation: fadeInUp 0.3s ease;
+}
+.auth-modal h2 { font-size: 1.3rem; font-weight: 800; margin-bottom: 4px; }
+.auth-modal .auth-subtitle { font-size: 0.82rem; color: var(--text-secondary); margin-bottom: 20px; }
+.auth-tabs { display: flex; gap: 0; margin-bottom: 20px; border-radius: 8px; overflow: hidden; border: 2px solid var(--border); }
+.auth-tab {
+  flex: 1; text-align: center; padding: 10px; cursor: pointer;
+  font-weight: 600; font-size: 0.9rem; background: #f8fafc; color: var(--text-secondary);
+  transition: all 0.2s; user-select: none;
+}
+.auth-tab.active { background: var(--primary); color: #fff; }
+.auth-form .form-row { margin-bottom: 14px; }
+.auth-form label { display: block; font-size: 0.8rem; font-weight: 600; color: var(--text-secondary); margin-bottom: 4px; }
+.auth-form input {
+  width: 100%; padding: 10px 14px; border: 2px solid var(--border); border-radius: 8px;
+  font-size: 0.95rem; font-family: inherit; outline: none; transition: border-color 0.2s;
+}
+.auth-form input:focus { border-color: var(--primary); }
+.auth-submit {
+  width: 100%; padding: 12px; border: none; border-radius: 8px;
+  background: var(--primary); color: #fff; font-weight: 700; font-size: 1rem;
+  cursor: pointer; font-family: inherit; transition: background 0.2s;
+}
+.auth-submit:hover { background: var(--primary-dark); }
+.auth-submit:disabled { opacity: 0.6; cursor: not-allowed; }
+.auth-error { color: var(--danger); font-size: 0.8rem; margin-top: 8px; text-align: center; min-height: 20px; }
+.auth-close {
+  position: absolute; top: 16px; right: 20px; background: none; border: none;
+  font-size: 1.5rem; cursor: pointer; color: var(--text-secondary);
+}
+.auth-success { color: var(--success); font-size: 0.8rem; margin-top: 8px; text-align: center; }
+
+/* ===== User Status Bar ===== */
+.user-bar {
+  display: flex; align-items: center; gap: 10px;
+  position: absolute; top: 16px; right: 24px; z-index: 10;
+}
+.user-bar .user-email { font-size: 0.8rem; opacity: 0.85; max-width: 160px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.user-bar button {
+  background: rgba(255,255,255,0.2); color: #fff; border: none;
+  padding: 6px 14px; border-radius: 16px; font-size: 0.78rem;
+  font-weight: 600; cursor: pointer; font-family: inherit; transition: background 0.2s;
+}
+.user-bar button:hover { background: rgba(255,255,255,0.35); }
+
+/* ===== Toast ===== */
+.toast-container { position: fixed; top: 20px; right: 20px; z-index: 2000; display: flex; flex-direction: column; gap: 8px; }
+.toast {
+  padding: 12px 18px; border-radius: 8px; color: #fff; font-size: 0.85rem;
+  font-weight: 600; animation: fadeInUp 0.3s ease; box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+  max-width: 320px;
+}
+.toast.success { background: var(--success); }
+.toast.error { background: var(--danger); }
+.toast.info { background: var(--primary); }
+
+@media (max-width: 480px) {
+  .user-bar { top: 8px; right: 12px; }
+  .user-bar .user-email { display: none; }
+}
+
 </style>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.1/dist/umd/supabase.min.js">
+// ================================================================
+// SUPABASE CONFIG & AUTH
+// ================================================================
+const SUPABASE_URL = 'https://whbbkoljhhkghhalbqjy.supabase.co';
+const SUPABASE_ANON_KEY = 'sb_publishable_4hqZ62WIEtAu49c9hQjvZw_ftRl7R8m';
+
+let supabase;
+try {
+  supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+} catch(e) {
+  console.error('Supabase init error:', e);
+  supabase = null;
+}
+
+let currentUser = null;
+let autoSaveTimer = null;
+const AUTO_SAVE_DELAY = 3000; // 3 seconds debounce
+let lastSavedProfile = null;
+
+// ================================================================
+// TOAST NOTIFICATIONS
+// ================================================================
+function showToast(msg, type) {
+  type = type || 'info';
+  const container = document.getElementById('toastContainer');
+  const toast = document.createElement('div');
+  toast.className = 'toast ' + type;
+  toast.textContent = msg;
+  container.appendChild(toast);
+  setTimeout(function() {
+    toast.style.opacity = '0';
+    toast.style.transition = 'opacity 0.3s';
+    setTimeout(function() { toast.remove(); }, 300);
+  }, 3000);
+}
+
+// ================================================================
+// AUTH MODAL
+// ================================================================
+let authMode = 'login'; // 'login' | 'register'
+
+function showAuthModal() {
+  document.getElementById('authOverlay').classList.add('show');
+  document.getElementById('authError').textContent = '';
+  document.getElementById('authSuccess').textContent = '';
+  document.getElementById('authForm').reset();
+}
+
+function hideAuthModal() {
+  document.getElementById('authOverlay').classList.remove('show');
+}
+
+function switchAuthTab(mode) {
+  authMode = mode;
+  document.getElementById('tabLogin').classList.toggle('active', mode === 'login');
+  document.getElementById('tabRegister').classList.toggle('active', mode === 'register');
+  document.getElementById('authTitle').textContent = mode === 'login' ? '🔐 登录' : '📝 注册';
+  document.getElementById('authSubtitle').textContent = mode === 'login'
+    ? '登录以加载你的身体数据和训练记录'
+    : '创建一个独立账号，数据永久保存';
+  document.getElementById('authSubmitBtn').textContent = mode === 'login' ? '登录' : '注册';
+  document.getElementById('authError').textContent = '';
+  document.getElementById('authSuccess').textContent = '';
+}
+
+async function handleAuthSubmit(e) {
+  e.preventDefault();
+  if (!supabase) { showToast('服务暂不可用，请稍后再试', 'error'); return; }
+
+  const email = document.getElementById('authEmail').value.trim();
+  const password = document.getElementById('authPassword').value;
+  const errorEl = document.getElementById('authError');
+  const successEl = document.getElementById('authSuccess');
+  const submitBtn = document.getElementById('authSubmitBtn');
+  errorEl.textContent = '';
+  successEl.textContent = '';
+  submitBtn.disabled = true;
+  submitBtn.textContent = '处理中...';
+
+  try {
+    var result;
+    if (authMode === 'register') {
+      result = await supabase.auth.signUp({ email: email, password: password });
+      if (result.error) throw result.error;
+      if (result.data.user) {
+        successEl.textContent = '✓ 注册成功！已自动登录';
+        await handlePostAuth(result.data.user);
+      }
+    } else {
+      result = await supabase.auth.signInWithPassword({ email: email, password: password });
+      if (result.error) throw result.error;
+      if (result.data.user) {
+        await handlePostAuth(result.data.user);
+      }
+    }
+  } catch(err) {
+    errorEl.textContent = '⚠ ' + (err.message || '操作失败，请重试');
+  } finally {
+    submitBtn.disabled = false;
+    submitBtn.textContent = authMode === 'login' ? '登录' : '注册';
+  }
+}
+
+async function handlePostAuth(user) {
+  currentUser = user;
+  hideAuthModal();
+  updateUserUI();
+  showToast('✓ 登录成功！正在加载你的数据...', 'success');
+
+  // Ensure user_data row exists
+  try {
+    await supabase.from('user_data').upsert({
+      user_id: user.id,
+      profile: getCurrentProfile()
+    }, { onConflict: 'user_id', ignoreDuplicates: true });
+  } catch(e) {
+    // Row may already exist
+  }
+
+  // Load saved data
+  await loadProfile();
+  calculate();
+  showToast('✓ 数据已加载', 'success');
+}
+
+async function handleLogout() {
+  if (!supabase) return;
+  await supabase.auth.signOut();
+  currentUser = null;
+  lastSavedProfile = null;
+  updateUserUI();
+  calculate();
+  showToast('已退出登录。数据仍保存在云端，重新登录即可恢复。', 'info');
+}
+
+function updateUserUI() {
+  var emailEl = document.getElementById('userEmail');
+  var authBtn = document.getElementById('authBtn');
+  var logoutBtn = document.getElementById('logoutBtn');
+
+  if (currentUser) {
+    emailEl.textContent = currentUser.email;
+    authBtn.style.display = 'none';
+    logoutBtn.style.display = 'inline-block';
+  } else {
+    emailEl.textContent = '';
+    authBtn.style.display = 'inline-block';
+    logoutBtn.style.display = 'none';
+  }
+
+  // Update save/load buttons visibility
+  var saveBtn = document.getElementById('exSaveBtn');
+  var loadBtn = document.getElementById('exLoadBtn');
+  if (saveBtn) saveBtn.style.display = currentUser ? 'inline-block' : 'none';
+  if (loadBtn) loadBtn.style.display = currentUser ? 'inline-block' : 'none';
+}
+
+// ================================================================
+// DATA PERSISTENCE
+// ================================================================
+function getCurrentProfile() {
+  return {
+    gender: els.genderMale.checked ? 'male' : 'female',
+    age: parseFloat(els.age.value) || 30,
+    height: parseFloat(els.height.value) || 170,
+    weight: parseFloat(els.weight.value) || 65,
+    bodyFat: parseFloat(els.bodyFat.value) || 20,
+    activityLevel: els.activityLevel.value,
+    goal: els.goal.value
+  };
+}
+
+function applyProfile(profile) {
+  if (!profile) return;
+  if (profile.gender === 'female') {
+    els.genderFemale.checked = true;
+  } else {
+    els.genderMale.checked = true;
+  }
+  els.age.value = profile.age || 30;
+  els.height.value = profile.height || 170;
+  els.weight.value = profile.weight || 65;
+  if (profile.bodyFat !== undefined) {
+    els.bodyFat.value = profile.bodyFat;
+    els.bodyFatSlider.value = profile.bodyFat;
+  }
+  els.activityLevel.value = profile.activityLevel || '1.55';
+  els.goal.value = profile.goal || 'maintain';
+}
+
+async function saveProfile() {
+  if (!supabase || !currentUser) return;
+
+  var profile = getCurrentProfile();
+  // Skip if unchanged
+  if (lastSavedProfile && JSON.stringify(profile) === JSON.stringify(lastSavedProfile)) return;
+
+  try {
+    var result = await supabase.from('user_data').upsert({
+      user_id: currentUser.id,
+      profile: profile,
+      updated_at: new Date().toISOString()
+    }, { onConflict: 'user_id' });
+
+    if (result.error) throw result.error;
+    lastSavedProfile = JSON.parse(JSON.stringify(profile));
+  } catch(err) {
+    console.error('Save profile error:', err);
+    showToast('⚠ 自动保存失败：' + err.message, 'error');
+  }
+}
+
+function triggerAutoSave() {
+  if (!currentUser) return;
+  clearTimeout(autoSaveTimer);
+  autoSaveTimer = setTimeout(saveProfile, AUTO_SAVE_DELAY);
+}
+
+async function loadProfile() {
+  if (!supabase || !currentUser) return;
+
+  try {
+    var result = await supabase.from('user_data')
+      .select('profile')
+      .eq('user_id', currentUser.id)
+      .single();
+
+    if (result.error && result.error.code !== 'PGRST116') throw result.error;
+    if (result.data && result.data.profile) {
+      applyProfile(result.data.profile);
+      lastSavedProfile = JSON.parse(JSON.stringify(result.data.profile));
+    }
+  } catch(err) {
+    console.error('Load profile error:', err);
+  }
+}
+
+// ================================================================
+// WORKOUT SAVE / LOAD
+// ================================================================
+async function saveWorkout() {
+  if (!supabase || !currentUser) {
+    showToast('请先登录再保存训练计划', 'error');
+    showAuthModal();
+    return;
+  }
+  if (workoutExercises.length === 0) {
+    showToast('请先添加训练动作', 'error');
+    return;
+  }
+
+  try {
+    var exercisesData = workoutExercises.map(function(w) {
+      return {
+        name: w.ex.name,
+        category: w.ex.category,
+        weightKg: w.weightKg,
+        reps: w.reps,
+        sets: w.sets,
+        restSec: w.restSec
+      };
+    });
+
+    var result = await supabase.from('saved_workouts').insert({
+      user_id: currentUser.id,
+      name: '我的训练',
+      exercises: exercisesData,
+      updated_at: new Date().toISOString()
+    }, { onConflict: 'user_id' });
+
+    if (result.error) throw result.error;
+    showToast('✓ 训练计划已保存到云端！', 'success');
+  } catch(err) {
+    console.error('Save workout error:', err);
+    showToast('⚠ 保存失败：' + err.message, 'error');
+  }
+}
+
+async function loadWorkout() {
+  if (!supabase || !currentUser) {
+    showToast('请先登录再加载训练计划', 'error');
+    showAuthModal();
+    return;
+  }
+
+  try {
+    var result = await supabase.from('saved_workouts')
+      .select('exercises')
+      .eq('user_id', currentUser.id)
+      .order('updated_at', { ascending: false })
+      .limit(1)
+      .single();
+
+    if (result.error) {
+      if (result.error.code === 'PGRST116') {
+        showToast('未找到已保存的训练计划', 'info');
+      } else {
+        throw result.error;
+      }
+      return;
+    }
+
+    if (result.data && result.data.exercises && result.data.exercises.length > 0) {
+      // Restore workout from saved data
+      workoutExercises = result.data.exercises.map(function(d) {
+        var ex = exercises.find(function(e) { return e.name === d.name; });
+        if (!ex) return null;
+        return {
+          ex: ex,
+          weightKg: d.weightKg,
+          reps: d.reps,
+          sets: d.sets,
+          restSec: d.restSec
+        };
+      }).filter(Boolean);
+
+      renderWorkout();
+      updateWorkoutTotals();
+      showToast('✓ 已加载 ' + workoutExercises.length + ' 个训练动作', 'success');
+    } else {
+      showToast('未找到已保存的训练动作', 'info');
+    }
+  } catch(err) {
+    console.error('Load workout error:', err);
+    showToast('⚠ 加载失败：' + err.message, 'error');
+  }
+}
+
+// ================================================================
+// OVERRIDE calculate() TO ADD AUTO-SAVE
+// ================================================================
+var origCalculate2 = calculate;
+calculate = function() {
+  origCalculate2();
+  triggerAutoSave();
+  if (workoutExercises.length > 0) {
+    renderWorkout();
+    updateWorkoutTotals();
+  }
+};
+
+// ================================================================
+// SESSION CHECK ON LOAD
+// ================================================================
+async function checkSession() {
+  if (!supabase) {
+    updateUserUI();
+    return;
+  }
+
+  try {
+    var result = await supabase.auth.getSession();
+    if (result.data && result.data.session) {
+      currentUser = result.data.session.user;
+      updateUserUI();
+      await loadProfile();
+      calculate();
+    } else {
+      updateUserUI();
+    }
+  } catch(err) {
+    console.error('Session check error:', err);
+    updateUserUI();
+  }
+}
+
+// Listen for auth state changes
+if (supabase) {
+  supabase.auth.onAuthStateChange(function(event, session) {
+    if (event === 'SIGNED_IN' && session) {
+      currentUser = session.user;
+      updateUserUI();
+      loadProfile().then(function() { calculate(); });
+    } else if (event === 'SIGNED_OUT') {
+      currentUser = null;
+      lastSavedProfile = null;
+      updateUserUI();
+      calculate();
+    }
+  });
+}
+
+// Run session check on page load
+checkSession();
+
+</script>
 </head>
 <body>
 
 <!-- ===== HEADER ===== -->
 <header class="header">
+
+  <div class="user-bar" id="userBar">
+    <span class="user-email" id="userEmail"></span>
+    <button id="authBtn" onclick="showAuthModal()">🔐 登录 / 注册</button>
+    <button id="logoutBtn" onclick="handleLogout()" style="display:none;">退出</button>
+  </div>
+
   <h1>🔥 基础代谢率计算器</h1>
   <p class="subtitle">Basal Metabolic Rate · 基于同行评审科学研究</p>
   <span class="badge">📚 5 种权威公式 · 多维度对比</span>
@@ -697,6 +1172,8 @@ body {
     </div>
     <div class="ex-btn-row" style="display:flex;gap:8px;">
       <button class="ex-btn ex-btn-add" id="exAddBtn">＋ 添加</button>
+      <button class="ex-btn" style="background:#dbeafe;color:#1e40af;" id="exSaveBtn" onclick="saveWorkout()">💾 保存</button>
+      <button class="ex-btn" style="background:#fef3c7;color:#92400e;" id="exLoadBtn" onclick="loadWorkout()">📂 加载</button>
       <button class="ex-btn ex-btn-reset" id="exResetBtn">清空</button>
     </div>
   </div>
@@ -1311,6 +1788,36 @@ document.getElementById('exResetBtn').addEventListener('click', resetWorkout);
 populateExerciseDropdown();
 
 </script>
+
+
+<!-- ===== AUTH MODAL ===== -->
+<div class="auth-overlay" id="authOverlay">
+  <div class="auth-modal" style="position:relative;">
+    <button class="auth-close" onclick="hideAuthModal()">×</button>
+    <h2 id="authTitle">🔐 登录</h2>
+    <p class="auth-subtitle" id="authSubtitle">登录以保存你的身体数据和训练记录</p>
+    <div class="auth-tabs">
+      <div class="auth-tab active" id="tabLogin" onclick="switchAuthTab('login')">登录</div>
+      <div class="auth-tab" id="tabRegister" onclick="switchAuthTab('register')">注册</div>
+    </div>
+    <form class="auth-form" id="authForm" onsubmit="handleAuthSubmit(event)">
+      <div class="form-row">
+        <label>邮箱</label>
+        <input type="email" id="authEmail" placeholder="your@email.com" required autocomplete="email">
+      </div>
+      <div class="form-row">
+        <label>密码</label>
+        <input type="password" id="authPassword" placeholder="至少 6 位字符" required minlength="6" autocomplete="current-password">
+      </div>
+      <button type="submit" class="auth-submit" id="authSubmitBtn">登录</button>
+    </form>
+    <div class="auth-error" id="authError"></div>
+    <div class="auth-success" id="authSuccess"></div>
+  </div>
+</div>
+
+<!-- Toast Container -->
+<div class="toast-container" id="toastContainer"></div>
 
 </body>
 </html>
