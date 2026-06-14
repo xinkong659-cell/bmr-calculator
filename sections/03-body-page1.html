@@ -1,0 +1,240 @@
+</head>
+<body>
+
+<!-- ===== HEADER ===== -->
+<header class="header">
+  <div class="user-bar" id="userBar">
+    <span class="user-email" id="userEmail"></span>
+    <button id="authBtn" onclick="showAuthModal()">🔐 登录 / 注册</button>
+    <button id="logoutBtn" onclick="handleLogout()" style="display:none;">退出</button>
+  </div>
+  <h1>🔥 代谢计算器</h1>
+  <p class="subtitle">BMR · TDEE · 训练消耗 · 饮食追踪 — 基于科学研究</p>
+</header>
+
+<!-- ===== Page Navigation ===== -->
+<nav class="page-nav">
+  <button class="page-nav-btn active" onclick="switchPage('page1')" id="navPage1">📊 身体数据 & 目标</button>
+  <button class="page-nav-btn" onclick="switchPage('page2')" id="navPage2">🏋️ 训练 & 饮食记录</button>
+</nav>
+
+<!-- ================================================================ -->
+<!-- PAGE 1: BODY DATA + BMR + GOALS -->
+<!-- ================================================================ -->
+<div class="page active" id="page1">
+<div class="container">
+<div class="main-grid">
+
+<!-- ===== INPUT PANEL ===== -->
+<div class="card" id="inputPanel">
+  <div class="card-title"><span class="icon">📋</span> 身体数据</div>
+
+  <!-- Gender -->
+  <div class="form-group">
+    <label>性别</label>
+    <div class="gender-toggle">
+      <input type="radio" name="gender" id="gender-male" value="male" checked>
+      <label for="gender-male">👨 男性</label>
+      <input type="radio" name="gender" id="gender-female" value="female">
+      <label for="gender-female">👩 女性</label>
+    </div>
+  </div>
+
+  <!-- Age -->
+  <div class="form-group">
+    <label>年龄</label>
+    <div class="input-row">
+      <input type="number" id="age" value="30" min="10" max="120" step="1" placeholder="输入年龄">
+      <span class="unit">岁</span>
+    </div>
+  </div>
+
+  <!-- Height -->
+  <div class="form-group">
+    <label>身高</label>
+    <div class="input-row">
+      <input type="number" id="height" value="170" min="80" max="250" step="0.1" placeholder="输入身高">
+      <span class="unit">cm</span>
+    </div>
+  </div>
+
+  <!-- Weight -->
+  <div class="form-group">
+    <label>体重</label>
+    <div class="input-row">
+      <input type="number" id="weight" value="65" min="20" max="400" step="0.1" placeholder="输入体重">
+      <span class="unit">kg</span>
+    </div>
+  </div>
+
+  <!-- Body Fat (Optional) -->
+  <div class="form-group" style="margin-bottom:6px;">
+    <label>体脂率 (可选)</label>
+    <div class="input-row">
+      <input type="number" id="bodyFat" value="20" min="2" max="60" step="0.1" placeholder="输入体脂率">
+      <span class="unit">%</span>
+    </div>
+  </div>
+
+  <!-- Activity Level -->
+  <div class="form-group" style="margin-top:6px;">
+    <label>🏃 活动水平（TDEE 计算用）</label>
+    <select id="activityLevel" style="width:100%;padding:10px 14px;border:2px solid var(--border);border-radius:10px;font-size:0.9rem;font-family:inherit;background:#f8fafc;cursor:pointer;outline:none;">
+      <option value="1.2">久坐不动 — 几乎不运动，办公室工作</option>
+      <option value="1.375">轻度活动 — 每周运动 1-3 天</option>
+      <option value="1.55" selected>中度活动 — 每周运动 3-5 天</option>
+      <option value="1.725">高度活动 — 每周运动 6-7 天</option>
+      <option value="1.9">极度活跃 — 高强度体力劳动/每天训练</option>
+    </select>
+  </div>
+
+  <!-- Goal -->
+  <div class="form-group">
+    <label>🎯 热量目标</label>
+    <select id="goal" style="width:100%;padding:10px 14px;border:2px solid var(--border);border-radius:10px;font-size:0.9rem;font-family:inherit;background:#f8fafc;cursor:pointer;outline:none;">
+      <option value="maintain" selected>保持体重</option>
+      <option value="mildLoss">温和减重（-250 kcal/天）</option>
+      <option value="moderateLoss">适度减重（-500 kcal/天）</option>
+      <option value="mildGain">温和增重（+250 kcal/天）</option>
+      <option value="moderateGain">适度增重（+500 kcal/天）</option>
+    </select>
+  </div>
+
+  <!-- Target Weight -->
+  <div class="form-group">
+    <label>🎯 目标体重（可选）</label>
+    <div style="display:flex;gap:8px;">
+      <div class="input-row" style="flex:1;">
+        <input type="number" id="targetWeight" min="30" max="400" step="0.1" placeholder="目标体重">
+        <span class="unit">kg</span>
+      </div>
+      <select id="targetDirection" style="width:100px;padding:10px;border:2px solid var(--border);border-radius:10px;font-size:0.85rem;font-family:inherit;background:#f8fafc;outline:none;">
+        <option value="lose">减脂</option>
+        <option value="gain">增肌</option>
+      </select>
+    </div>
+  </div>
+
+  <!-- Save Button -->
+  <div style="margin-top:10px;display:flex;align-items:center;gap:10px;">
+    <button id="saveProfileBtn" onclick="manualSave()" style="padding:7px 18px;border:1.5px solid var(--primary);border-radius:8px;font-weight:600;font-size:0.82rem;cursor:pointer;font-family:inherit;background:#fff;color:var(--primary);transition:all 0.2s;white-space:nowrap;">💾 保存</button>
+    <span style="font-size:0.7rem;color:var(--text-secondary);" id="saveStatus">登录后可保存</span>
+  </div>
+</div>
+
+<!-- ===== RESULTS PANEL ===== -->
+<div>
+  <!-- TDEE + BMR Combined -->
+  <div class="tdee-section animate-in">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:12px;">
+      <div style="flex:1;min-width:200px;">
+        <h3>📊 每日总能量消耗 (TDEE)</h3>
+        <div class="tdee-value" id="tdeeValue">--</div>
+        <span class="tdee-activity-label" id="tdeeActivityLabel">中度活动</span>
+      </div>
+      <div style="text-align:right;min-width:140px;">
+        <div style="font-size:0.7rem;opacity:0.7;">基础代谢 (BMR)</div>
+        <div style="font-size:1.6rem;font-weight:700;" id="tdeeBmrValue">--</div>
+        <div style="font-size:0.6rem;opacity:0.55;margin-top:2px;" id="tdeeBmrSource"></div>
+      </div>
+    </div>
+
+    <!-- Goal Quick Cards -->
+    <div style="display:flex;gap:8px;margin-top:14px;flex-wrap:wrap;" id="goalQuickCards"></div>
+    <div class="tdee-note" id="tdeeNote" style="margin-top:10px;"></div>
+  </div>
+
+  <!-- Target Weight Progress -->
+  <div class="target-section animate-in" id="targetProgressSection" style="display:none;">
+    <div style="display:flex;justify-content:space-between;align-items:center;">
+      <div style="font-weight:700;font-size:0.9rem;">🎯 目标进度</div>
+      <div style="font-size:0.8rem;color:var(--text-secondary);" id="targetProgressText"></div>
+    </div>
+    <div class="target-progress-bar">
+      <div class="target-progress-fill" id="targetProgressFill" style="width:0%;"></div>
+    </div>
+    <div style="display:flex;justify-content:space-between;font-size:0.7rem;color:var(--text-secondary);margin-top:4px;">
+      <span id="targetStartLabel">当前: -- kg</span>
+      <span id="targetEndLabel">目标: -- kg</span>
+    </div>
+    <div style="margin-top:8px;padding:8px 12px;background:#fff;border-radius:8px;font-size:0.75rem;color:var(--text-secondary);" id="targetRecommendation"></div>
+  </div>
+
+  <!-- Macro + BMI row -->
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:20px;">
+    <!-- Macro Nutrients -->
+    <div class="card animate-in">
+      <div class="card-title"><span class="icon">🍽️</span> 宏量营养素建议</div>
+      <div class="macro-grid" style="margin-bottom:0;">
+        <div class="macro-card protein">
+          <div class="macro-icon">🥩</div>
+          <div class="macro-name">蛋白质</div>
+          <div class="macro-value" id="macroProtein">--</div>
+          <div class="macro-unit">克/天</div>
+        </div>
+        <div class="macro-card carbs">
+          <div class="macro-icon">🍚</div>
+          <div class="macro-name">碳水化合物</div>
+          <div class="macro-value" id="macroCarbs">--</div>
+          <div class="macro-unit">克/天</div>
+        </div>
+        <div class="macro-card fat">
+          <div class="macro-icon">🥑</div>
+          <div class="macro-name">脂肪</div>
+          <div class="macro-value" id="macroFat">--</div>
+          <div class="macro-unit">克/天</div>
+        </div>
+      </div>
+      <p style="font-size:0.65rem;color:var(--text-secondary);margin-top:6px;" id="macroVerify"></p>
+      <p style="font-size:0.7rem;color:var(--text-secondary);margin-top:10px;">
+        * 蛋白质按体重 × 活动水平 (1.2-2.0 g/kg)，脂肪 25%，碳水填补剩余热量
+      </p>
+    </div>
+
+    <!-- BMI -->
+    <div class="card animate-in">
+      <div class="card-title"><span class="icon">⚖️</span> 身体质量指数 (BMI)</div>
+      <div style="text-align:center;margin-bottom:16px;">
+        <span style="font-size:3rem;font-weight:800;color:var(--primary-dark);" id="bmiValue">--</span>
+        <span style="font-size:0.9rem;color:var(--text-secondary);display:block;" id="bmiCategory"></span>
+      </div>
+      <div class="bmi-bar-container">
+        <div class="bmi-bar">
+          <div class="bmi-indicator" id="bmiIndicator" style="left:50%;"></div>
+        </div>
+        <div class="bmi-labels">
+          <span>&lt;18.5 偏瘦</span><span>18.5-24.9 正常</span><span>25-29.9 超重</span><span>&ge;30 肥胖</span>
+        </div>
+      </div>
+      <p style="font-size:0.78rem;color:var(--text-secondary);margin-top:12px;text-align:center;" id="idealWeight"></p>
+    </div>
+  </div>
+
+  <!-- References -->
+  <div class="ref-section card">
+    <h3>📚 科学参考文献</h3>
+    <div class="ref-grid">
+      <div class="ref-item">
+        <div class="ref-title">Mifflin-St Jeor 方程 (1990)</div>
+        <div class="ref-detail">Mifflin MD, et al. "A new predictive equation for resting energy expenditure in healthy individuals." <em>American Journal of Clinical Nutrition</em>, 1990; 51(2): 241-247.</div>
+        <span class="ref-link">🔬 美国营养与饮食学会 (AND) 推荐为最准确的 BMR 预测公式</span>
+      </div>
+      <div class="ref-item">
+        <div class="ref-title">ACSM 减重指南 (2021)</div>
+        <div class="ref-detail">American College of Sports Medicine. "ACSM's Guidelines for Exercise Testing and Prescription." 11th ed. 建议每周减重 0.5-1 kg（热量缺口 500-1000 kcal/天）为安全速率。</div>
+      </div>
+      <div class="ref-item">
+        <div class="ref-title">蛋白质摄入建议</div>
+        <div class="ref-detail">Jäger R, et al. "International Society of Sports Nutrition Position Stand: protein and exercise." <em>JISSN</em>, 2017. 建议运动人群 1.4-2.0 g/kg/天。</div>
+      </div>
+      <div class="ref-item">
+        <div class="ref-title">宏量营养素分布</div>
+        <div class="ref-detail">Institute of Medicine. "Dietary Reference Intakes for Energy, Carbohydrate, Fiber, Fat, Fatty Acids, Cholesterol, Protein, and Amino Acids." National Academies Press, 2005.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+</div><!-- /main-grid -->
+</div><!-- /container -->
+</div><!-- /page1 -->

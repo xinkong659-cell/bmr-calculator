@@ -1,0 +1,480 @@
+// ============ Food Search ============
+let selectedFood = null;
+let activeMeal = 'breakfast'; // current target meal for food search
+
+function searchFood() {
+  const query = document.getElementById('foodSearch').value.trim().toLowerCase();
+  const resultsDiv = document.getElementById('foodSearchResults');
+
+  if (!query || query.length < 1) {
+    resultsDiv.innerHTML = '';
+    resultsDiv.classList.remove('show');
+    return;
+  }
+
+  // Search by substring match in name
+  const results = [];
+  const seen = {};
+  foodDatabase.forEach(function(f) {
+    const name = f[0];
+    if (seen[name]) return;
+    if (name.includes(query) || name.toLowerCase().includes(query)) {
+      results.push(f);
+      seen[name] = true;
+    }
+  });
+
+  // Also search by category
+  foodDatabase.forEach(function(f) {
+    const name = f[0];
+    if (seen[name]) return;
+    if (f[1].includes(query)) {
+      results.push(f);
+      seen[name] = true;
+    }
+  });
+
+  if (results.length === 0) {
+    resultsDiv.innerHTML = '<div style="padding:12px;font-size:0.85rem;color:var(--text-secondary);text-align:center;">未找到匹配食物</div>';
+    resultsDiv.classList.add('show');
+    return;
+  }
+
+  resultsDiv.innerHTML = results.slice(0, 30).map(function(f) {
+    return '<div class="food-result-item" onclick="selectFood(\'' + f[0] + '\', ' + f[2] + ', ' + f[3] + ', ' + f[4] + ', ' + f[5] + ')">'
+      + '<div><div class="food-name">' + f[0] + '</div><div class="food-info">' + f[1] + ' · 蛋白质 ' + f[3] + 'g · 碳水 ' + f[4] + 'g · 脂肪 ' + f[5] + 'g</div></div>'
+      + '<div class="food-cal">' + f[2] + ' kcal</div>'
+      + '</div>';
+  }).join('');
+  resultsDiv.classList.add('show');
+}
+
+function selectFood(name, cal, protein, carbs, fat) {
+  selectedFood = { name: name, cal: cal, protein: protein, carbs: carbs, fat: fat };
+  document.getElementById('foodSearch').value = name;
+  document.getElementById('foodSearch').dataset.selected = 'true';
+  document.getElementById('foodSearchResults').classList.remove('show');
+  // Focus the grams input for the active meal
+  var gramsInput = document.getElementById('grams_' + activeMeal);
+  if (gramsInput) gramsInput.focus();
+}
+
+// Hide search results when clicking outside
+document.addEventListener('click', function(e) {
+  if (!e.target.closest('.food-search-box')) {
+    document.getElementById('foodSearchResults').classList.remove('show');
+  }
+});
+
+// ============ Meal Tracking ============
+const mealLog = {
+  breakfast: [],
+  lunch: [],
+  dinner: [],
+  snacks: []
+};
+
+function toggleMeal(meal) {
+  // Just set active meal for the search
+  activeMeal = meal;
+  document.getElementById('foodSearch').focus();
+}
+
+function addFoodToMeal(meal) {
+  if (!selectedFood) {
+    showToast('请先在搜索框中搜索并选择食物', 'info');
+    return;
+  }
+  var gramsInput = document.getElementById('grams_' + meal);
+  var grams = parseFloat(gramsInput.value) || 100;
+  if (grams <= 0) grams = 100;
+
+  var ratio = grams / 100;
+  var item = {
+    name: selectedFood.name,
+    grams: grams,
+    cal: Math.round(selectedFood.cal * ratio),
+    protein: Math.round(selectedFood.protein * ratio * 10) / 10,
+    carbs: Math.round(selectedFood.carbs * ratio * 10) / 10,
+    fat: Math.round(selectedFood.fat * ratio * 10) / 10
+  };
+
+  mealLog[meal].push(item);
+  renderMeal(meal);
+  updateDailySummary();
+  gramsInput.value = '100';
+
+  // Clear selection
+  selectedFood = null;
+  document.getElementById('foodSearch').value = '';
+  document.getElementById('foodSearch').dataset.selected = 'false';
+}
+
+function removeFoodFromMeal(meal, index) {
+  mealLog[meal].splice(index, 1);
+  renderMeal(meal);
+  updateDailySummary();
+}
+
+function renderMeal(meal) {
+  var itemsDiv = document.getElementById(meal + 'Items');
+  var totalEl = document.getElementById(meal + 'Total');
+  var items = mealLog[meal];
+
+  if (items.length === 0) {
+    var labels = { breakfast: '早餐', lunch: '午餐', dinner: '晚餐', snacks: '加餐' };
+    itemsDiv.innerHTML = '<div style="font-size:0.78rem;color:var(--text-secondary);padding:8px 6px;">点击上方搜索食物，添加到' + labels[meal] + '</div>';
+    totalEl.textContent = '0 kcal';
+    return;
+  }
+
+  itemsDiv.innerHTML = items.map(function(item, i) {
+    return '<div class="meal-item-row">'
+      + '<div class="mi-name">' + item.name + '</div>'
+      + '<div class="mi-grams">' + item.grams + 'g</div>'
+      + '<div class="mi-cal">' + item.cal + ' kcal</div>'
+      + '<div class="mi-del" onclick="removeFoodFromMeal(\'' + meal + '\', ' + i + ')">×</div>'
+      + '</div>';
+  }).join('');
+
+  // Add quick-add row
+  itemsDiv.innerHTML += '<div class="meal-add-row">'
+    + '<input type="number" id="grams_' + meal + '" value="100" min="10" max="2000" step="10" placeholder="克数" onkeydown="if(event.key===\'Enter\')addFoodToMeal(\'' + meal + '\')">'
+    + '<button onclick="addFoodToMeal(\'' + meal + '\')">＋ 添加</button>'
+    + '</div>';
+
+  // Calculate total for this meal
+  var totalCal = items.reduce(function(sum, item) { return sum + item.cal; }, 0);
+  totalEl.textContent = totalCal + ' kcal';
+}
+
+function updateDailySummary() {
+  var allItems = mealLog.breakfast.concat(mealLog.lunch, mealLog.dinner, mealLog.snacks);
+  var totalCal = allItems.reduce(function(s, i) { return s + i.cal; }, 0);
+  var totalProtein = allItems.reduce(function(s, i) { return s + i.protein; }, 0);
+  var totalCarbs = allItems.reduce(function(s, i) { return s + i.carbs; }, 0);
+  var totalFat = allItems.reduce(function(s, i) { return s + i.fat; }, 0);
+
+  document.getElementById('dailyCalTotal').textContent = totalCal;
+  document.getElementById('dailyProtein').textContent = Math.round(totalProtein * 10) / 10;
+  document.getElementById('dailyCarbs').textContent = Math.round(totalCarbs * 10) / 10;
+  document.getElementById('dailyFat').textContent = Math.round(totalFat * 10) / 10;
+}
+
+function clearMeals() {
+  if (!confirm('确定要清空今日所有饮食记录吗？')) return;
+  mealLog.breakfast = [];
+  mealLog.lunch = [];
+  mealLog.dinner = [];
+  mealLog.snacks = [];
+  renderMeal('breakfast');
+  renderMeal('lunch');
+  renderMeal('dinner');
+  renderMeal('snacks');
+  updateDailySummary();
+}
+
+// ============ Main Calculate ============
+function calculate() {
+  const gender = document.getElementById('gender-male').checked ? 'male' : 'female';
+  const age = parseFloat(document.getElementById('age').value) || 30;
+  const height = parseFloat(document.getElementById('height').value) || 170;
+  const weight = parseFloat(document.getElementById('weight').value) || 65;
+  const bodyFat = parseFloat(document.getElementById('bodyFat').value) || 20;
+  const activityLevel = document.getElementById('activityLevel').value;
+  const goal = document.getElementById('goal').value;
+
+  // TDEE
+  const bmrM = Math.round(bmrMifflinStJeor(gender, weight, height, age));
+  const actInfo = activityMultipliers[activityLevel];
+  const tdee = Math.round(bmrM * parseFloat(activityLevel));
+  const goalInfo = goalAdjustments[goal];
+  const goalCal = Math.round(tdee + goalInfo.adjustment);
+
+  // BMR display
+  document.getElementById('tdeeBmrValue').textContent = bmrM.toLocaleString() + ' kcal';
+  document.getElementById('tdeeBmrSource').innerHTML = 'Mifflin-St Jeor (1990)<br>AND 推荐 · 最准确';
+
+  // Goal quick cards
+  const goalChips = [
+    { key: 'moderateLoss', label: '🔥 减重', sub: '-500' },
+    { key: 'mildLoss', label: '🥗 温和减', sub: '-250' },
+    { key: 'maintain', label: '⚖️ 保持', sub: '±0' },
+    { key: 'mildGain', label: '💪 温和增', sub: '+250' },
+    { key: 'moderateGain', label: '🏋️ 增肌', sub: '+500' },
+  ];
+  const curGoal = document.getElementById('goal').value;
+  const container = document.getElementById('goalQuickCards');
+  if (container) {
+    container.innerHTML = goalChips.map(function(g) {
+      const cal = Math.round(tdee + goalAdjustments[g.key].adjustment);
+      const act = g.key === curGoal;
+      return '<div class="goal-chip"'
+        + ' onclick="document.getElementById(\'goal\').value=\'' + g.key + '\';calculate();"'
+        + ' style="flex:1;min-width:80px;padding:10px 6px;border-radius:10px;text-align:center;cursor:pointer;transition:all .2s;'
+        + 'background:' + (act ? 'rgba(255,255,255,.25)' : 'rgba(255,255,255,.08)') + ';'
+        + 'border:1.5px solid ' + (act ? 'rgba(255,255,255,.5)' : 'rgba(255,255,255,.12)') + ';'
+        + 'color:#fff;">'
+        + '<div style="font-size:.68rem;opacity:.85;">' + g.label + '</div>'
+        + '<div style="font-size:1.15rem;font-weight:800;">' + cal.toLocaleString() + '</div>'
+        + '<div style="font-size:.6rem;opacity:.6;">' + g.sub + ' kcal</div>'
+        + '</div>';
+    }).join('');
+  }
+
+  // TDEE
+  document.getElementById('tdeeValue').textContent = tdee.toLocaleString() + ' kcal';
+  document.getElementById('tdeeActivityLabel').textContent = '🏃 ' + actInfo.label + ' (×' + activityLevel + ')';
+  document.getElementById('tdeeNote').textContent = '基于 Mifflin-St Jeor 公式 BMR × 活动系数 | ' + actInfo.desc;
+
+  // Macro Nutrients
+  const proteinRates = { '1.2': 1.2, '1.375': 1.4, '1.55': 1.6, '1.725': 1.8, '1.9': 2.0 };
+  const proteinRate = proteinRates[activityLevel] || 1.6;
+  const proteinG = Math.round(weight * proteinRate);
+  const fatG = Math.round((goalCal * 0.25) / 9);
+  const carbCal = goalCal - proteinG * 4 - fatG * 9;
+  const carbG = Math.round(Math.max(0, carbCal / 4));
+
+  document.getElementById('macroProtein').textContent = proteinG;
+  document.getElementById('macroCarbs').textContent = carbG;
+  document.getElementById('macroFat').textContent = fatG;
+
+  const macroCalTotal = proteinG * 4 + carbG * 4 + fatG * 9;
+  const macroVerifyEl = document.getElementById('macroVerify');
+  if (macroVerifyEl) {
+    macroVerifyEl.textContent = '（蛋白 ' + proteinG + 'g × 4 + 碳水 ' + carbG + 'g × 4 + 脂肪 ' + fatG + 'g × 9 = ' + macroCalTotal + ' kcal ≈ 目标 ' + goalCal + ' kcal）';
+  }
+
+  // BMI
+  const heightM = height / 100;
+  const bmi = weight / (heightM * heightM);
+  document.getElementById('bmiValue').textContent = bmi.toFixed(1);
+
+  let bmiCat, bmiColor;
+  if (bmi < 18.5) { bmiCat = '偏瘦'; bmiColor = '#60a5fa'; }
+  else if (bmi < 25) { bmiCat = '正常范围'; bmiColor = '#34d399'; }
+  else if (bmi < 30) { bmiCat = '超重'; bmiColor = '#fbbf24'; }
+  else { bmiCat = '肥胖'; bmiColor = '#ef4444'; }
+  document.getElementById('bmiCategory').textContent = bmiCat;
+  document.getElementById('bmiCategory').style.color = bmiColor;
+
+  const bmiPercent = Math.max(0, Math.min(100, ((bmi - 10) / (40 - 10)) * 100));
+  document.getElementById('bmiIndicator').style.left = bmiPercent + '%';
+
+  const idealLow = Math.round(18.5 * heightM * heightM * 10) / 10;
+  const idealHigh = Math.round(24.9 * heightM * heightM * 10) / 10;
+  document.getElementById('idealWeight').innerHTML = '基于 BMI 18.5-24.9，你的理想体重范围：<strong>' + idealLow + ' – ' + idealHigh + ' kg</strong>';
+
+  // Target Weight Progress
+  updateTargetProgress(weight, height);
+}
+
+function updateTargetProgress(currentWeight, height) {
+  const targetWeight = parseFloat(document.getElementById('targetWeight').value);
+  const targetDirection = document.getElementById('targetDirection').value;
+  const section = document.getElementById('targetProgressSection');
+
+  if (!targetWeight || targetWeight <= 0) {
+    section.style.display = 'none';
+    return;
+  }
+
+  section.style.display = 'block';
+  const diff = targetDirection === 'lose' ? currentWeight - targetWeight : targetWeight - currentWeight;
+  const totalChange = Math.abs(targetWeight - currentWeight);
+  const startWeight = targetDirection === 'lose' ? Math.max(currentWeight, targetWeight) : Math.min(currentWeight, targetWeight);
+  const endWeight = targetDirection === 'lose' ? targetWeight : targetWeight;
+
+  // Progress: how much of the goal is achieved
+  const progressPct = totalChange > 0 ? Math.min(100, Math.max(0, (diff / totalChange) * 100)) : 100;
+
+  document.getElementById('targetProgressFill').style.width = progressPct + '%';
+  document.getElementById('targetStartLabel').textContent = '当前: ' + currentWeight + ' kg';
+  document.getElementById('targetEndLabel').textContent = '目标: ' + targetWeight + ' kg';
+
+  const direction = targetDirection === 'lose' ? '减脂' : '增肌';
+  const remaining = Math.abs(targetWeight - currentWeight);
+  document.getElementById('targetProgressText').textContent = direction + ' · 还需 ' + remaining.toFixed(1) + ' kg';
+
+  // Scientific recommendation
+  const weeksNeededLow = Math.ceil(remaining / 1.0); // 1 kg/week max safe rate
+  const weeksNeededHigh = Math.ceil(remaining / 0.5); // 0.5 kg/week min safe rate
+
+  let recHTML = '📊 <strong>科学建议</strong>：';
+  if (targetDirection === 'lose') {
+    recHTML += 'ACSM 建议安全减重速率 0.5-1 kg/周（热量缺口 500-1000 kcal/天）。预计需要 <strong>' + weeksNeededHigh + '-' + weeksNeededLow + ' 周</strong>。';
+    if (currentWeight > targetWeight) {
+      recHTML += '当前进度：已减 ' + Math.max(0, diff).toFixed(1) + ' kg。';
+    }
+  } else {
+    recHTML += '增肌建议每周增重 0.25-0.5 kg，避免过多脂肪增长。预计需要 <strong>' + weeksNeededHigh + '-' + weeksNeededLow + ' 周</strong>。';
+    if (currentWeight < targetWeight) {
+      recHTML += '当前进度：已增 ' + Math.max(0, diff).toFixed(1) + ' kg。';
+    }
+  }
+  recHTML += ' 蛋白质摄入建议 ' + (document.getElementById('macroProtein').textContent) + ' g/天。';
+  document.getElementById('targetRecommendation').innerHTML = recHTML;
+}
+
+// ============ Event Listeners ============
+document.getElementById('gender-male').addEventListener('change', calculate);
+document.getElementById('gender-female').addEventListener('change', calculate);
+document.getElementById('age').addEventListener('input', calculate);
+document.getElementById('height').addEventListener('input', calculate);
+document.getElementById('weight').addEventListener('input', calculate);
+document.getElementById('bodyFat').addEventListener('input', calculate);
+document.getElementById('activityLevel').addEventListener('change', calculate);
+document.getElementById('goal').addEventListener('change', calculate);
+document.getElementById('targetWeight').addEventListener('input', calculate);
+document.getElementById('targetDirection').addEventListener('change', calculate);
+
+// ============ Exercise Panel Logic ============
+let workoutExercises = [];
+
+function populateExerciseDropdown() {
+  const select = document.getElementById('exSelect');
+  if (!select || select.options.length > 1) return;
+  const categories = [...new Set(exercises.map(function(e) { return e.category; }))];
+  categories.forEach(function(cat) {
+    const optgroup = document.createElement('optgroup');
+    optgroup.label = '━ ' + cat + ' ━';
+    optgroup.className = 'cat-optgroup';
+    exercises.filter(function(e) { return e.category === cat; }).forEach(function(ex) {
+      const opt = document.createElement('option');
+      opt.value = ex.name;
+      opt.textContent = ex.name + ' (MET ' + ex.met + ')';
+      optgroup.appendChild(opt);
+    });
+    select.appendChild(optgroup);
+  });
+}
+
+function addExercise() {
+  const select = document.getElementById('exSelect');
+  const weightEl = document.getElementById('exWeight');
+  const repsEl = document.getElementById('exReps');
+  const setsEl = document.getElementById('exSets');
+  const restEl = document.getElementById('exRest');
+  const exName = select.value;
+  if (!exName) return;
+  const ex = exercises.find(function(e) { return e.name === exName; });
+  const weightKg = parseFloat(weightEl.value) || 0;
+  const reps = parseInt(repsEl.value) || 10;
+  const sets = parseInt(setsEl.value) || 3;
+  const restSec = parseInt(restEl.value) || 90;
+  if (weightKg <= 0) { alert('请输入有效重量'); return; }
+  workoutExercises.push({ ex: ex, weightKg: weightKg, reps: reps, sets: sets, restSec: restSec });
+  renderWorkout();
+  updateWorkoutTotals();
+}
+
+function removeExercise(index) {
+  workoutExercises.splice(index, 1);
+  renderWorkout();
+  updateWorkoutTotals();
+}
+
+function resetWorkout() {
+  workoutExercises = [];
+  renderWorkout();
+  updateWorkoutTotals();
+}
+
+function renderWorkout() {
+  const list = document.getElementById('workoutList');
+  if (workoutExercises.length === 0) {
+    list.innerHTML = '<div class="workout-empty">👆 从上方选择训练动作开始构建你的训练计划</div>';
+    document.getElementById('workoutSummary').style.display = 'none';
+    return;
+  }
+  const bodyWeight = parseFloat(document.getElementById('weight').value) || 65;
+  list.innerHTML = workoutExercises.map(function(w, i) {
+    const result = calcExerciseCalories(w.ex, w.weightKg, w.reps, w.sets, w.restSec, bodyWeight);
+    return '<div class="workout-item">'
+      + '<div><div class="ex-name">' + w.ex.name + '</div>'
+      + '<div class="ex-detail">' + w.weightKg + 'kg × ' + w.reps + '次 × ' + w.sets + '组 | 做功 ' + result.workJoules.toLocaleString() + 'J | 用时约 ' + result.totalTimeMin + '分</div></div>'
+      + '<div class="ex-cal">🔥 ' + result.total + ' kcal</div>'
+      + '<div style="font-size:.68rem;color:var(--text-secondary);">做功 ' + result.workKcal + ' + MET ' + result.metKcal + '</div>'
+      + '<button class="ex-del" onclick="removeExercise(' + i + ')" title="移除">×</button>'
+      + '</div>';
+  }).join('');
+  document.getElementById('workoutSummary').style.display = 'flex';
+}
+
+function updateWorkoutTotals() {
+  const bodyWeight = parseFloat(document.getElementById('weight').value) || 65;
+  if (workoutExercises.length === 0) {
+    document.getElementById('workoutSummary').style.display = 'none';
+    updateIntegrationNote(0);
+    return;
+  }
+  let totalKcal = 0, totalWorkKcal = 0, totalMetKcal = 0, totalJoules = 0, totalTime = 0;
+  workoutExercises.forEach(function(w) {
+    const r = calcExerciseCalories(w.ex, w.weightKg, w.reps, w.sets, w.restSec, bodyWeight);
+    totalKcal += r.total;
+    totalWorkKcal += r.workKcal;
+    totalMetKcal += r.metKcal;
+    totalJoules += r.workJoules;
+    totalTime += r.totalTimeMin;
+  });
+  document.getElementById('workoutSummary').style.display = 'flex';
+  document.getElementById('workoutTotalCal').textContent = Math.round(totalKcal) + ' kcal';
+  document.getElementById('workoutDetail').textContent =
+    '做功消耗 ' + Math.round(totalWorkKcal) + ' kcal + MET消耗 ' + Math.round(totalMetKcal) + ' kcal | 总做功 ' + totalJoules.toLocaleString() + ' 焦耳 | 训练时长约 ' + Math.round(totalTime) + ' 分钟';
+  updateIntegrationNote(Math.round(totalKcal));
+}
+
+function updateIntegrationNote(exerciseKcal) {
+  const gender = document.getElementById('gender-male').checked ? 'male' : 'female';
+  const age = parseFloat(document.getElementById('age').value) || 30;
+  const height = parseFloat(document.getElementById('height').value) || 170;
+  const weight = parseFloat(document.getElementById('weight').value) || 65;
+  const activityMultiplier = parseFloat(document.getElementById('activityLevel').value);
+  const bmrM = bmrMifflinStJeor(gender, weight, height, age);
+  const dailyActivityKcal = Math.round(bmrM * activityMultiplier);
+  const totalWithExercise = dailyActivityKcal + exerciseKcal;
+  const note = document.getElementById('integrationNote');
+  if (note) {
+    note.style.display = exerciseKcal > 0 ? 'block' : 'none';
+    document.getElementById('integrateBmr').textContent = Math.round(bmrM).toLocaleString();
+    document.getElementById('integrateActivity').textContent = '×' + activityMultiplier;
+    document.getElementById('integrateEx').textContent = exerciseKcal.toLocaleString();
+    document.getElementById('integrateTotal').textContent = totalWithExercise.toLocaleString();
+  }
+}
+
+// Override calculate to also trigger auto-save and refresh workout
+const origCalculate = calculate;
+calculate = function() {
+  origCalculate();
+  triggerAutoSave();
+  if (workoutExercises.length > 0) {
+    renderWorkout();
+    updateWorkoutTotals();
+  }
+};
+
+// Exercise panel event listeners
+document.getElementById('exAddBtn').addEventListener('click', addExercise);
+document.getElementById('exResetBtn').addEventListener('click', resetWorkout);
+['exWeight','exReps','exSets','exRest'].forEach(function(id) {
+  document.getElementById(id).addEventListener('keydown', function(e) {
+    if (e.key === 'Enter') addExercise();
+  });
+});
+
+// Initialize
+populateExerciseDropdown();
+
+// Initialize meal renders on page load
+renderMeal('breakfast');
+renderMeal('lunch');
+renderMeal('dinner');
+renderMeal('snacks');
+
+// Initial calculation
+calculate();
+
+</script>
+</body>
+</html>

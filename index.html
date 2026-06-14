@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>基础代谢率 (BMR) 计算器 — 基于科学研究</title>
+<title>代谢计算器 · BMR · 训练 · 饮食追踪</title>
 <style>
 /* ===== Reset & Base ===== */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -20,8 +20,6 @@
   --success: #10b981;
   --warning: #f59e0b;
   --danger: #ef4444;
-  --gradient-1: #667eea;
-  --gradient-2: #764ba2;
   --radius: 16px;
   --shadow: 0 4px 24px rgba(0,0,0,0.08);
 }
@@ -34,11 +32,41 @@ body {
   line-height: 1.6;
 }
 
+/* ===== Page Navigation ===== */
+.page-nav {
+  display: flex;
+  justify-content: center;
+  gap: 4px;
+  padding: 12px 16px;
+  background: #fff;
+  border-bottom: 1px solid var(--border);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.04);
+}
+.page-nav-btn {
+  padding: 10px 28px;
+  border: none;
+  border-radius: 10px;
+  font-size: 0.95rem;
+  font-weight: 700;
+  cursor: pointer;
+  font-family: inherit;
+  transition: all 0.2s;
+  background: transparent;
+  color: var(--text-secondary);
+}
+.page-nav-btn.active { background: var(--primary); color: #fff; }
+.page-nav-btn:hover:not(.active) { background: #f1f5f9; }
+.page { display: none; }
+.page.active { display: block; }
+
 /* ===== Header ===== */
 .header {
   background: linear-gradient(135deg, #0c4a6e 0%, #0e7490 40%, #0891b2 100%);
   color: #fff;
-  padding: 32px 20px 28px;
+  padding: 28px 20px 24px;
   text-align: center;
   position: relative;
   overflow: hidden;
@@ -50,226 +78,47 @@ body {
   background: url("data:image/svg+xml,%3Csvg width='60' height='60' xmlns='http://www.w3.org/2000/svg'%3E%3Ccircle cx='30' cy='30' r='1.2' fill='rgba(255,255,255,0.08)'/%3E%3C/svg%3E");
   opacity: 0.6;
 }
-.header h1 { font-size: 2rem; font-weight: 800; letter-spacing: -0.02em; position: relative; }
-.header .subtitle { font-size: 0.95rem; opacity: 0.85; margin-top: 6px; position: relative; }
-.header .badge {
-  display: inline-block; margin-top: 10px; padding: 4px 14px;
-  background: rgba(255,255,255,0.18); border-radius: 20px;
-  font-size: 0.8rem; letter-spacing: 0.05em; position: relative;
-}
+.header h1 { font-size: 1.7rem; font-weight: 800; letter-spacing: -0.02em; position: relative; }
+.header .subtitle { font-size: 0.85rem; opacity: 0.85; margin-top: 4px; position: relative; }
 
 /* ===== Container ===== */
-.container {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 24px 20px 40px;
-}
+.container { max-width: 1200px; margin: 0 auto; padding: 20px 20px 40px; }
 
 /* ===== Main Grid ===== */
-.main-grid {
-  display: grid;
-  grid-template-columns: 380px 1fr;
-  gap: 24px;
-  align-items: start;
-}
+.main-grid { display: grid; grid-template-columns: 380px 1fr; gap: 24px; align-items: start; }
 
 /* ===== Cards ===== */
-.card {
-  background: var(--card);
-  border-radius: var(--radius);
-  padding: 24px;
-  box-shadow: var(--shadow);
-  border: 1px solid var(--border);
-}
-
-.card-title {
-  font-size: 1.1rem;
-  font-weight: 700;
-  margin-bottom: 20px;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
+.card { background: var(--card); border-radius: var(--radius); padding: 24px; box-shadow: var(--shadow); border: 1px solid var(--border); }
+.card-title { font-size: 1.1rem; font-weight: 700; margin-bottom: 20px; display: flex; align-items: center; gap: 8px; }
 .card-title .icon { font-size: 1.3rem; }
 
 /* ===== Form ===== */
-.form-group { margin-bottom: 18px; }
-.form-group label {
-  display: block;
-  font-size: 0.875rem;
-  font-weight: 600;
-  color: var(--text-secondary);
-  margin-bottom: 6px;
-}
+.form-group { margin-bottom: 16px; }
+.form-group label { display: block; font-size: 0.85rem; font-weight: 600; color: var(--text-secondary); margin-bottom: 6px; }
 
-/* Gender Toggle */
-.gender-toggle {
-  display: flex;
-  gap: 0;
-  border-radius: 10px;
-  overflow: hidden;
-  border: 2px solid var(--border);
-}
+.gender-toggle { display: flex; gap: 0; border-radius: 10px; overflow: hidden; border: 2px solid var(--border); }
 .gender-toggle input { display: none; }
-.gender-toggle label {
-  flex: 1;
-  text-align: center;
-  padding: 10px;
-  cursor: pointer;
-  font-weight: 600;
-  font-size: 0.9rem;
-  background: #f8fafc;
-  transition: all 0.2s;
-  color: var(--text-secondary);
-  margin: 0;
-}
-.gender-toggle input:checked + label {
-  background: var(--primary);
-  color: #fff;
-}
+.gender-toggle label { flex: 1; text-align: center; padding: 10px; cursor: pointer; font-weight: 600; font-size: 0.9rem; background: #f8fafc; transition: all 0.2s; color: var(--text-secondary); margin: 0; }
+.gender-toggle input:checked + label { background: var(--primary); color: #fff; }
 
-/* Inputs */
-.input-row {
-  display: flex;
-  align-items: center;
-  background: #f8fafc;
-  border: 2px solid var(--border);
-  border-radius: 10px;
-  transition: border-color 0.2s;
-}
+.input-row { display: flex; align-items: center; background: #f8fafc; border: 2px solid var(--border); border-radius: 10px; transition: border-color 0.2s; }
 .input-row:focus-within { border-color: var(--primary); }
-.input-row input {
-  flex: 1;
-  border: none;
-  background: transparent;
-  padding: 10px 14px;
-  font-size: 1rem;
-  outline: none;
-  color: var(--text);
-  font-family: inherit;
-  min-width: 0;
-}
-.input-row .unit {
-  padding: 10px 14px 10px 0;
-  font-size: 0.85rem;
-  color: var(--text-secondary);
-  font-weight: 500;
-  white-space: nowrap;
-}
+.input-row input, .input-row select { flex: 1; border: none; background: transparent; padding: 10px 14px; font-size: 1rem; outline: none; color: var(--text); font-family: inherit; min-width: 0; }
+.input-row .unit { padding: 10px 14px 10px 0; font-size: 0.85rem; color: var(--text-secondary); font-weight: 500; white-space: nowrap; }
 
-/* Slider group */
-.slider-group input[type="range"] {
-  width: 100%;
-  accent-color: var(--primary);
-  margin-top: 4px;
-}
-.slider-labels {
-  display: flex;
-  justify-content: space-between;
-  font-size: 0.75rem;
-  color: var(--text-secondary);
-  margin-top: 2px;
-}
-
-/* Body fat optional */
-.optional-field {
-  border-top: 1px dashed var(--border);
-  padding-top: 14px;
-  margin-top: 4px;
-}
-.optional-toggle {
-  font-size: 0.8rem;
-  color: var(--primary-dark);
-  cursor: pointer;
-  user-select: none;
-  font-weight: 600;
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-}
-.optional-toggle:hover { text-decoration: underline; }
-.optional-content { display: none; margin-top: 10px; }
-.optional-content.show { display: block; }
-
-/* ===== Results ===== */
-.results-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 16px;
-}
-.results-header h2 { font-size: 1.2rem; font-weight: 700; }
-
-/* BMR Cards Grid */
-.bmr-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-  gap: 14px;
-  margin-bottom: 20px;
-}
-.bmr-card {
-  background: linear-gradient(135deg, #f8fafc 0%, #fff 100%);
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  padding: 18px;
-  text-align: center;
-  transition: transform 0.2s, box-shadow 0.2s;
-  position: relative;
-}
-.bmr-card:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(0,0,0,0.1); }
-.bmr-card.recommended { border-color: var(--success); border-width: 2px; }
-.bmr-card.recommended::before {
-  content: '✓ 推荐';
-  position: absolute;
-  top: -11px;
-  left: 50%;
-  transform: translateX(-50%);
-  background: var(--success);
-  color: #fff;
-  font-size: 0.7rem;
-  font-weight: 700;
-  padding: 2px 12px;
-  border-radius: 10px;
-  white-space: nowrap;
-}
-.bmr-card .formula-name { font-size: 0.8rem; font-weight: 600; color: var(--text-secondary); margin-bottom: 6px; }
-.bmr-card .bmr-value { font-size: 2rem; font-weight: 800; color: var(--primary-dark); }
-.bmr-card .bmr-unit { font-size: 0.75rem; color: var(--text-secondary); }
-.bmr-card .formula-year { font-size: 0.7rem; color: #94a3b8; margin-top: 4px; }
-
-/* TDEE Section */
-.tdee-section {
-  background: linear-gradient(135deg, #0c4a6e, #0e7490);
-  color: #fff;
-  border-radius: var(--radius);
-  padding: 24px;
-  margin-bottom: 20px;
-}
+/* ===== TDEE Section ===== */
+.tdee-section { background: linear-gradient(135deg, #0c4a6e, #0e7490); color: #fff; border-radius: var(--radius); padding: 24px; margin-bottom: 20px; }
 .tdee-section h3 { font-size: 0.95rem; opacity: 0.9; margin-bottom: 4px; }
-.tdee-section .tdee-value { font-size: 3rem; font-weight: 800; line-height: 1; }
+.tdee-section .tdee-value { font-size: 2.8rem; font-weight: 800; line-height: 1; }
 .tdee-section .tdee-note { font-size: 0.8rem; opacity: 0.75; margin-top: 6px; }
-.tdee-activity-label {
-  display: inline-block;
-  padding: 3px 12px;
-  background: rgba(255,255,255,0.2);
-  border-radius: 12px;
-  font-size: 0.8rem;
-  margin-top: 8px;
-}
+.tdee-activity-label { display: inline-block; padding: 3px 12px; background: rgba(255,255,255,0.2); border-radius: 12px; font-size: 0.8rem; margin-top: 8px; }
+
+/* Goal chips */
+.goal-chip { flex: 1; min-width: 80px; padding: 10px 6px; border-radius: 10px; text-align: center; cursor: pointer; transition: all 0.2s; color: #fff; }
 
 /* Macro Section */
-.macro-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 14px;
-  margin-bottom: 20px;
-}
-.macro-card {
-  text-align: center;
-  padding: 18px 12px;
-  border-radius: 12px;
-  border: 1px solid var(--border);
-}
+.macro-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-bottom: 20px; }
+.macro-card { text-align: center; padding: 18px 12px; border-radius: 12px; border: 1px solid var(--border); }
 .macro-card.protein { background: #fef2f2; border-color: #fecaca; }
 .macro-card.carbs { background: #fffbeb; border-color: #fde68a; }
 .macro-card.fat { background: #ecfdf5; border-color: #a7f3d0; }
@@ -279,281 +128,149 @@ body {
 .macro-card .macro-unit { font-size: 0.7rem; color: var(--text-secondary); }
 
 /* BMI Bar */
-.bmi-bar-container {
-  margin-top: 12px;
-}
-.bmi-bar {
-  height: 10px;
-  border-radius: 5px;
-  position: relative;
-  background: linear-gradient(to right, #60a5fa 0%, #34d399 35%, #fbbf24 65%, #f87171 85%, #ef4444 100%);
-}
-.bmi-indicator {
-  position: absolute;
-  top: -6px;
-  width: 22px;
-  height: 22px;
-  background: #fff;
-  border: 3px solid var(--text);
-  border-radius: 50%;
-  transform: translateX(-50%);
-  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
-}
-.bmi-labels {
-  display: flex;
-  justify-content: space-between;
-  font-size: 0.65rem;
-  color: var(--text-secondary);
-  margin-top: 6px;
-}
+.bmi-bar-container { margin-top: 12px; }
+.bmi-bar { height: 10px; border-radius: 5px; position: relative; background: linear-gradient(to right, #60a5fa 0%, #34d399 35%, #fbbf24 65%, #f87171 85%, #ef4444 100%); }
+.bmi-indicator { position: absolute; top: -6px; width: 22px; height: 22px; background: #fff; border: 3px solid var(--text); border-radius: 50%; transform: translateX(-50%); box-shadow: 0 2px 8px rgba(0,0,0,0.15); }
+.bmi-labels { display: flex; justify-content: space-between; font-size: 0.65rem; color: var(--text-secondary); margin-top: 6px; }
 
-/* ===== References ===== */
-.ref-section {
-  margin-top: 32px;
-}
-.ref-section h3 {
-  font-size: 1rem;
-  font-weight: 700;
-  margin-bottom: 14px;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-.ref-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
-  gap: 12px;
-}
-.ref-item {
-  background: var(--card);
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  padding: 14px 16px;
-  font-size: 0.82rem;
-}
-.ref-item .ref-title { font-weight: 700; }
-.ref-item .ref-detail { color: var(--text-secondary); font-size: 0.78rem; margin-top: 2px; }
-.ref-item .ref-link { color: var(--primary-dark); font-size: 0.75rem; }
+/* ===== Target Weight Progress ===== */
+.target-section { background: linear-gradient(135deg, #f0fdf4 0%, #ecfeff 100%); border: 1px solid #a7f3d0; border-radius: 12px; padding: 16px; margin-top: 16px; }
+.target-progress-bar { height: 12px; background: #e2e8f0; border-radius: 6px; overflow: hidden; margin-top: 8px; }
+.target-progress-fill { height: 100%; background: linear-gradient(90deg, #10b981, #34d399); border-radius: 6px; transition: width 0.5s ease; }
 
-/* ===== Footer ===== */
-.footer {
-  text-align: center;
-  padding: 20px;
-  color: var(--text-secondary);
-  font-size: 0.78rem;
-}
-.footer .disclaimer {
-  max-width: 700px;
-  margin: 8px auto 0;
-  font-size: 0.72rem;
-  color: #94a3b8;
-}
-
-/* ===== Responsive ===== */
-@media (max-width: 860px) {
-  .main-grid { grid-template-columns: 1fr; }
-  .header h1 { font-size: 1.5rem; }
-  .tdee-section .tdee-value { font-size: 2.4rem; }
-  .macro-grid { grid-template-columns: repeat(3, 1fr); }
-  .bmr-grid { grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); }
-}
-
-@media (max-width: 480px) {
-  .container { padding: 12px 10px 24px; }
-  .card { padding: 16px; }
-  .bmr-grid { grid-template-columns: 1fr 1fr; }
-  .bmr-card .bmr-value { font-size: 1.5rem; }
-  .macro-grid { grid-template-columns: 1fr; }
-  .ref-grid { grid-template-columns: 1fr; }
-}
-
-/* Animations */
-@keyframes fadeInUp {
-  from { opacity: 0; transform: translateY(12px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-.animate-in { animation: fadeInUp 0.4s ease forwards; }
+/* ===== Page 2: Diet & Exercise Tabs ===== */
+.page2-tabs { display: flex; gap: 0; margin-bottom: 20px; border-radius: 10px; overflow: hidden; border: 2px solid var(--border); }
+.page2-tab { flex: 1; text-align: center; padding: 10px; cursor: pointer; font-weight: 600; font-size: 0.9rem; background: #f8fafc; color: var(--text-secondary); transition: all 0.2s; user-select: none; }
+.page2-tab.active { background: var(--primary); color: #fff; }
+.page2-content { display: none; }
+.page2-content.active { display: block; }
 
 /* ===== Exercise Calculator ===== */
-.exercise-panel { margin-top: 24px; }
-.exercise-selector {
-  display: grid;
-  grid-template-columns: 1fr 100px 70px 70px 70px auto;
-  gap: 8px;
-  align-items: end;
-  margin-bottom: 12px;
-}
-@media (max-width: 860px) {
-  .exercise-selector {
-    grid-template-columns: 1fr 1fr 1fr;
-  }
-  .exercise-selector .ex-btn-row {
-    grid-column: 1 / -1;
-  }
-}
-.exercise-selector select, .exercise-selector input {
-  padding: 9px 10px;
-  border: 2px solid var(--border);
-  border-radius: 8px;
-  font-size: 0.85rem;
-  font-family: inherit;
-  background: #f8fafc;
-  outline: none;
-  width: 100%;
-}
-.exercise-selector select:focus, .exercise-selector input:focus {
-  border-color: var(--primary);
-}
-.exercise-selector .ex-label {
-  font-size: 0.7rem;
-  color: var(--text-secondary);
-  font-weight: 600;
-  margin-bottom: 2px;
-  display: block;
-}
-.ex-btn {
-  padding: 9px 16px;
-  border: none;
-  border-radius: 8px;
-  font-weight: 700;
-  font-size: 0.85rem;
-  cursor: pointer;
-  font-family: inherit;
-  transition: all 0.2s;
-}
-.ex-btn-add {
-  background: var(--primary);
-  color: #fff;
-}
+.exercise-selector { display: grid; grid-template-columns: 1fr 100px 70px 70px 70px auto; gap: 8px; align-items: end; margin-bottom: 12px; }
+.exercise-selector select, .exercise-selector input { padding: 9px 10px; border: 2px solid var(--border); border-radius: 8px; font-size: 0.85rem; font-family: inherit; background: #f8fafc; outline: none; width: 100%; }
+.exercise-selector select:focus, .exercise-selector input:focus { border-color: var(--primary); }
+.exercise-selector .ex-label { font-size: 0.7rem; color: var(--text-secondary); font-weight: 600; margin-bottom: 2px; display: block; }
+.ex-btn { padding: 9px 16px; border: none; border-radius: 8px; font-weight: 700; font-size: 0.85rem; cursor: pointer; font-family: inherit; transition: all 0.2s; }
+.ex-btn-add { background: var(--primary); color: #fff; }
 .ex-btn-add:hover { background: var(--primary-dark); }
-.ex-btn-reset {
-  background: #fee2e2;
-  color: #991b1b;
-}
+.ex-btn-reset { background: #fee2e2; color: #991b1b; }
 .ex-btn-reset:hover { background: #fecaca; }
-.workout-list { margin-top: 8px; }
-.workout-item {
-  display: grid;
-  grid-template-columns: 1fr auto auto auto;
-  gap: 12px;
-  align-items: center;
-  padding: 10px 14px;
-  background: #f8fafc;
-  border-radius: 8px;
-  margin-bottom: 6px;
-  font-size: 0.85rem;
-  border: 1px solid var(--border);
-}
+.workout-item { display: grid; grid-template-columns: 1fr auto auto auto; gap: 12px; align-items: center; padding: 10px 14px; background: #f8fafc; border-radius: 8px; margin-bottom: 6px; font-size: 0.85rem; border: 1px solid var(--border); }
 .workout-item .ex-name { font-weight: 700; }
 .workout-item .ex-detail { font-size: 0.75rem; color: var(--text-secondary); }
 .workout-item .ex-cal { font-weight: 700; color: var(--primary-dark); }
-.workout-item .ex-del {
-  color: #ef4444;
-  cursor: pointer;
-  font-weight: 700;
-  font-size: 1.1rem;
-  padding: 2px 8px;
-  border: none;
-  background: none;
-}
+.workout-item .ex-del { color: #ef4444; cursor: pointer; font-weight: 700; font-size: 1.1rem; padding: 2px 8px; border: none; background: none; }
 .workout-item .ex-del:hover { background: #fee2e2; border-radius: 4px; }
-.workout-summary {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 14px 16px;
-  background: linear-gradient(135deg, #ecfdf5, #d1fae5);
-  border-radius: 10px;
-  margin-top: 10px;
-  border: 1px solid #a7f3d0;
-}
+.workout-summary { display: flex; justify-content: space-between; align-items: center; padding: 14px 16px; background: linear-gradient(135deg, #ecfdf5, #d1fae5); border-radius: 10px; margin-top: 10px; border: 1px solid #a7f3d0; }
 .workout-summary .total-label { font-weight: 700; font-size: 0.9rem; }
 .workout-summary .total-cal { font-size: 1.8rem; font-weight: 800; color: #065f46; }
 .workout-empty { text-align: center; color: var(--text-secondary); font-size: 0.85rem; padding: 20px; }
 .rest-input { width: 70px !important; }
 .cat-optgroup { font-weight: 700; color: var(--primary-dark); }
 
+/* ===== Food Diary ===== */
+.food-search-box { position: relative; margin-bottom: 16px; }
+.food-search-box input { width: 100%; padding: 12px 16px; border: 2px solid var(--border); border-radius: 10px; font-size: 1rem; font-family: inherit; outline: none; transition: border-color 0.2s; background: #f8fafc; }
+.food-search-box input:focus { border-color: var(--primary); }
+.food-search-results { position: absolute; top: 100%; left: 0; right: 0; max-height: 280px; overflow-y: auto; background: #fff; border: 1px solid var(--border); border-radius: 8px; box-shadow: 0 8px 30px rgba(0,0,0,0.15); z-index: 50; display: none; }
+.food-search-results.show { display: block; }
+.food-result-item { padding: 10px 14px; cursor: pointer; border-bottom: 1px solid #f1f5f9; display: flex; justify-content: space-between; align-items: center; transition: background 0.15s; }
+.food-result-item:hover { background: #f0f9ff; }
+.food-result-item .food-name { font-weight: 600; font-size: 0.9rem; }
+.food-result-item .food-info { font-size: 0.75rem; color: var(--text-secondary); }
+.food-result-item .food-cal { font-weight: 700; color: var(--primary-dark); font-size: 0.85rem; }
+
+/* Meal Sections */
+.meal-section { margin-bottom: 20px; border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
+.meal-header { display: flex; justify-content: space-between; align-items: center; padding: 12px 16px; font-weight: 700; font-size: 0.9rem; cursor: pointer; user-select: none; }
+.meal-header.breakfast { background: #fff7ed; }
+.meal-header.lunch { background: #f0f9ff; }
+.meal-header.dinner { background: #fdf2f8; }
+.meal-header.snack { background: #fffbeb; }
+.meal-items { padding: 8px 12px; }
+.meal-item-row { display: grid; grid-template-columns: 1fr 80px 60px 30px; gap: 8px; align-items: center; padding: 8px 6px; border-bottom: 1px solid #f1f5f9; font-size: 0.85rem; }
+.meal-item-row .mi-name { font-weight: 600; }
+.meal-item-row .mi-grams { color: var(--text-secondary); font-size: 0.78rem; }
+.meal-item-row .mi-cal { font-weight: 700; color: var(--primary-dark); }
+.meal-item-row .mi-del { color: #ef4444; cursor: pointer; font-weight: 700; text-align: center; }
+.meal-add-row { display: flex; gap: 8px; padding: 8px 6px; align-items: center; }
+.meal-add-row input { flex: 1; padding: 8px 10px; border: 1px solid var(--border); border-radius: 6px; font-size: 0.82rem; font-family: inherit; background: #fff; }
+.meal-add-row button { padding: 8px 14px; border: none; border-radius: 6px; background: var(--primary); color: #fff; font-weight: 600; cursor: pointer; font-size: 0.8rem; font-family: inherit; white-space: nowrap; }
+.meal-total { padding: 8px 16px; font-size: 0.85rem; font-weight: 700; text-align: right; color: var(--text-secondary); }
+
+/* Daily Summary */
+.daily-summary { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-top: 16px; }
+.daily-stat { text-align: center; padding: 16px 8px; border-radius: 12px; border: 1px solid var(--border); background: #fff; }
+.daily-stat .stat-label { font-size: 0.7rem; color: var(--text-secondary); font-weight: 600; }
+.daily-stat .stat-value { font-size: 1.4rem; font-weight: 800; }
+.daily-stat .stat-goal { font-size: 0.7rem; color: var(--text-secondary); }
 
 /* ===== Auth Modal ===== */
-.auth-overlay {
-  display: none;
-  position: fixed;
-  z-index: 1000;
-  inset: 0;
-  background: rgba(0,0,0,0.5);
-  backdrop-filter: blur(4px);
-  align-items: center;
-  justify-content: center;
-}
+.auth-overlay { display: none; position: fixed; z-index: 1000; inset: 0; background: rgba(0,0,0,0.5); backdrop-filter: blur(4px); align-items: center; justify-content: center; }
 .auth-overlay.show { display: flex; }
-.auth-modal {
-  background: #fff;
-  border-radius: 16px;
-  padding: 32px 28px;
-  width: 100%;
-  max-width: 400px;
-  box-shadow: 0 20px 60px rgba(0,0,0,0.2);
-  animation: fadeInUp 0.3s ease;
-}
+.auth-modal { background: #fff; border-radius: 16px; padding: 32px 28px; width: 100%; max-width: 400px; box-shadow: 0 20px 60px rgba(0,0,0,0.2); animation: fadeInUp 0.3s ease; }
 .auth-modal h2 { font-size: 1.3rem; font-weight: 800; margin-bottom: 4px; }
 .auth-modal .auth-subtitle { font-size: 0.82rem; color: var(--text-secondary); margin-bottom: 20px; }
 .auth-tabs { display: flex; gap: 0; margin-bottom: 20px; border-radius: 8px; overflow: hidden; border: 2px solid var(--border); }
-.auth-tab {
-  flex: 1; text-align: center; padding: 10px; cursor: pointer;
-  font-weight: 600; font-size: 0.9rem; background: #f8fafc; color: var(--text-secondary);
-  transition: all 0.2s; user-select: none;
-}
+.auth-tab { flex: 1; text-align: center; padding: 10px; cursor: pointer; font-weight: 600; font-size: 0.9rem; background: #f8fafc; color: var(--text-secondary); transition: all 0.2s; user-select: none; }
 .auth-tab.active { background: var(--primary); color: #fff; }
 .auth-form .form-row { margin-bottom: 14px; }
 .auth-form label { display: block; font-size: 0.8rem; font-weight: 600; color: var(--text-secondary); margin-bottom: 4px; }
-.auth-form input {
-  width: 100%; padding: 10px 14px; border: 2px solid var(--border); border-radius: 8px;
-  font-size: 0.95rem; font-family: inherit; outline: none; transition: border-color 0.2s;
-}
+.auth-form input { width: 100%; padding: 10px 14px; border: 2px solid var(--border); border-radius: 8px; font-size: 0.95rem; font-family: inherit; outline: none; transition: border-color 0.2s; }
 .auth-form input:focus { border-color: var(--primary); }
-.auth-submit {
-  width: 100%; padding: 12px; border: none; border-radius: 8px;
-  background: var(--primary); color: #fff; font-weight: 700; font-size: 1rem;
-  cursor: pointer; font-family: inherit; transition: background 0.2s;
-}
+.auth-submit { width: 100%; padding: 12px; border: none; border-radius: 8px; background: var(--primary); color: #fff; font-weight: 700; font-size: 1rem; cursor: pointer; font-family: inherit; transition: background 0.2s; }
 .auth-submit:hover { background: var(--primary-dark); }
 .auth-submit:disabled { opacity: 0.6; cursor: not-allowed; }
 .auth-error { color: var(--danger); font-size: 0.8rem; margin-top: 8px; text-align: center; min-height: 20px; }
-.auth-close {
-  position: absolute; top: 16px; right: 20px; background: none; border: none;
-  font-size: 1.5rem; cursor: pointer; color: var(--text-secondary);
-}
+.auth-close { position: absolute; top: 16px; right: 20px; background: none; border: none; font-size: 1.5rem; cursor: pointer; color: var(--text-secondary); }
 .auth-success { color: var(--success); font-size: 0.8rem; margin-top: 8px; text-align: center; }
 
 /* ===== User Status Bar ===== */
-.user-bar {
-  display: flex; align-items: center; gap: 10px;
-  position: absolute; top: 16px; right: 24px; z-index: 10;
-}
+.user-bar { display: flex; align-items: center; gap: 10px; position: absolute; top: 16px; right: 24px; z-index: 10; }
 .user-bar .user-email { font-size: 0.8rem; opacity: 0.85; max-width: 160px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.user-bar button {
-  background: rgba(255,255,255,0.2); color: #fff; border: none;
-  padding: 6px 14px; border-radius: 16px; font-size: 0.78rem;
-  font-weight: 600; cursor: pointer; font-family: inherit; transition: background 0.2s;
-}
+.user-bar button { background: rgba(255,255,255,0.2); color: #fff; border: none; padding: 6px 14px; border-radius: 16px; font-size: 0.78rem; font-weight: 600; cursor: pointer; font-family: inherit; transition: background 0.2s; }
 .user-bar button:hover { background: rgba(255,255,255,0.35); }
 
 /* ===== Toast ===== */
 .toast-container { position: fixed; top: 20px; right: 20px; z-index: 2000; display: flex; flex-direction: column; gap: 8px; }
-.toast {
-  padding: 12px 18px; border-radius: 8px; color: #fff; font-size: 0.85rem;
-  font-weight: 600; animation: fadeInUp 0.3s ease; box-shadow: 0 4px 16px rgba(0,0,0,0.15);
-  max-width: 320px;
-}
+.toast { padding: 12px 18px; border-radius: 8px; color: #fff; font-size: 0.85rem; font-weight: 600; animation: fadeInUp 0.3s ease; box-shadow: 0 4px 16px rgba(0,0,0,0.15); max-width: 320px; }
 .toast.success { background: var(--success); }
 .toast.error { background: var(--danger); }
 .toast.info { background: var(--primary); }
 
+/* ===== References ===== */
+.ref-section { margin-top: 32px; }
+.ref-section h3 { font-size: 1rem; font-weight: 700; margin-bottom: 14px; display: flex; align-items: center; gap: 6px; }
+.ref-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 12px; }
+.ref-item { background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 14px 16px; font-size: 0.82rem; }
+.ref-item .ref-title { font-weight: 700; }
+.ref-item .ref-detail { color: var(--text-secondary); font-size: 0.78rem; margin-top: 2px; }
+.ref-item .ref-link { color: var(--primary-dark); font-size: 0.75rem; }
+
+/* ===== Footer ===== */
+.footer { text-align: center; padding: 20px; color: var(--text-secondary); font-size: 0.78rem; }
+.footer .disclaimer { max-width: 700px; margin: 8px auto 0; font-size: 0.72rem; color: #94a3b8; }
+
+/* ===== Responsive ===== */
+@media (max-width: 860px) {
+  .main-grid { grid-template-columns: 1fr; }
+  .exercise-selector { grid-template-columns: 1fr 1fr 1fr; }
+  .exercise-selector .ex-btn-row { grid-column: 1 / -1; }
+  .daily-summary { grid-template-columns: repeat(2, 1fr); }
+}
 @media (max-width: 480px) {
+  .container { padding: 12px 10px 24px; }
+  .card { padding: 16px; }
+  .macro-grid { grid-template-columns: 1fr 1fr; }
+  .daily-summary { grid-template-columns: 1fr 1fr; }
   .user-bar { top: 8px; right: 12px; }
   .user-bar .user-email { display: none; }
+  .page-nav-btn { padding: 8px 16px; font-size: 0.85rem; }
 }
 
+/* ===== Animations ===== */
+@keyframes fadeInUp { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+.animate-in { animation: fadeInUp 0.4s ease forwards; }
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.1/dist/umd/supabase.min.js"></script>
 <script>
@@ -573,7 +290,7 @@ try {
 
 let currentUser = null;
 let autoSaveTimer = null;
-const AUTO_SAVE_DELAY = 3000; // 3 seconds debounce
+const AUTO_SAVE_DELAY = 3000;
 let lastSavedProfile = null;
 
 // ================================================================
@@ -596,7 +313,7 @@ function showToast(msg, type) {
 // ================================================================
 // AUTH MODAL
 // ================================================================
-let authMode = 'login'; // 'login' | 'register'
+let authMode = 'login';
 
 function showAuthModal() {
   document.getElementById('authOverlay').classList.add('show');
@@ -666,17 +383,13 @@ async function handlePostAuth(user) {
   updateUserUI();
   showToast('✓ 登录成功！正在加载你的数据...', 'success');
 
-  // Ensure user_data row exists
   try {
     await supabase.from('user_data').upsert({
       user_id: user.id,
       profile: getCurrentProfile()
     }, { onConflict: 'user_id', ignoreDuplicates: true });
-  } catch(e) {
-    // Row may already exist
-  }
+  } catch(e) {}
 
-  // Load saved data
   await loadProfile();
   calculate();
   showToast('✓ 数据已加载', 'success');
@@ -708,7 +421,6 @@ function updateUserUI() {
   }
 
   updateSaveButtonState();
-  // Update save/load buttons visibility
   var saveBtn = document.getElementById('exSaveBtn');
   var loadBtn = document.getElementById('exLoadBtn');
   if (saveBtn) saveBtn.style.display = currentUser ? 'inline-block' : 'none';
@@ -720,39 +432,42 @@ function updateUserUI() {
 // ================================================================
 function getCurrentProfile() {
   return {
-    gender: els.genderMale.checked ? 'male' : 'female',
-    age: parseFloat(els.age.value) || 30,
-    height: parseFloat(els.height.value) || 170,
-    weight: parseFloat(els.weight.value) || 65,
-    bodyFat: parseFloat(els.bodyFat.value) || 20,
-    activityLevel: els.activityLevel.value,
-    goal: els.goal.value
+    gender: document.getElementById('gender-male').checked ? 'male' : 'female',
+    age: parseFloat(document.getElementById('age').value) || 30,
+    height: parseFloat(document.getElementById('height').value) || 170,
+    weight: parseFloat(document.getElementById('weight').value) || 65,
+    bodyFat: parseFloat(document.getElementById('bodyFat').value) || 20,
+    activityLevel: document.getElementById('activityLevel').value,
+    goal: document.getElementById('goal').value,
+    targetWeight: parseFloat(document.getElementById('targetWeight').value) || null,
+    targetDirection: document.getElementById('targetDirection').value
   };
 }
 
 function applyProfile(profile) {
   if (!profile) return;
   if (profile.gender === 'female') {
-    els.genderFemale.checked = true;
+    document.getElementById('gender-female').checked = true;
   } else {
-    els.genderMale.checked = true;
+    document.getElementById('gender-male').checked = true;
   }
-  els.age.value = profile.age || 30;
-  els.height.value = profile.height || 170;
-  els.weight.value = profile.weight || 65;
+  document.getElementById('age').value = profile.age || 30;
+  document.getElementById('height').value = profile.height || 170;
+  document.getElementById('weight').value = profile.weight || 65;
   if (profile.bodyFat !== undefined) {
-    els.bodyFat.value = profile.bodyFat;
-    els.bodyFatSlider.value = profile.bodyFat;
+    document.getElementById('bodyFat').value = profile.bodyFat;
+    document.getElementById('bodyFatSlider').value = profile.bodyFat;
   }
-  els.activityLevel.value = profile.activityLevel || '1.55';
-  els.goal.value = profile.goal || 'maintain';
+  document.getElementById('activityLevel').value = profile.activityLevel || '1.55';
+  document.getElementById('goal').value = profile.goal || 'maintain';
+  if (profile.targetWeight) document.getElementById('targetWeight').value = profile.targetWeight;
+  if (profile.targetDirection) document.getElementById('targetDirection').value = profile.targetDirection;
 }
 
 async function saveProfile() {
   if (!supabase || !currentUser) return;
 
   var profile = getCurrentProfile();
-  // Skip if unchanged
   if (lastSavedProfile && JSON.stringify(profile) === JSON.stringify(lastSavedProfile)) return;
 
   try {
@@ -861,7 +576,6 @@ async function loadWorkout() {
     }
 
     if (result.data && result.data.exercises && result.data.exercises.length > 0) {
-      // Restore workout from saved data
       workoutExercises = result.data.exercises.map(function(d) {
         var ex = exercises.find(function(e) { return e.name === d.name; });
         if (!ex) return null;
@@ -890,10 +604,7 @@ async function loadWorkout() {
 // SESSION CHECK ON LOAD
 // ================================================================
 async function checkSession() {
-  if (!supabase) {
-    updateUserUI();
-    return;
-  }
+  if (!supabase) { updateUserUI(); return; }
 
   try {
     var result = await supabase.auth.getSession();
@@ -911,7 +622,6 @@ async function checkSession() {
   }
 }
 
-// Listen for auth state changes
 if (supabase) {
   supabase.auth.onAuthStateChange(function(event, session) {
     if (event === 'SIGNED_IN' && session) {
@@ -927,8 +637,6 @@ if (supabase) {
   });
 }
 
-
-// Manual save with visual feedback
 function manualSave() {
   if (!currentUser) {
     showToast('请先登录再保存数据', 'error');
@@ -961,7 +669,6 @@ function manualSave() {
   });
 }
 
-// Update save button state based on auth
 function updateSaveButtonState() {
   var btn = document.getElementById("saveProfileBtn");
   var status = document.getElementById("saveStatus");
@@ -977,28 +684,32 @@ function updateSaveButtonState() {
   }
 }
 
-// Run session check on page load
 checkSession();
-
 </script>
 </head>
 <body>
 
 <!-- ===== HEADER ===== -->
 <header class="header">
-
   <div class="user-bar" id="userBar">
     <span class="user-email" id="userEmail"></span>
     <button id="authBtn" onclick="showAuthModal()">🔐 登录 / 注册</button>
     <button id="logoutBtn" onclick="handleLogout()" style="display:none;">退出</button>
   </div>
-
-  <h1>🔥 基础代谢率计算器</h1>
-  <p class="subtitle">Basal Metabolic Rate · 基于同行评审科学研究</p>
-  <span class="badge">📚 5 种权威公式 · 多维度对比</span>
+  <h1>🔥 代谢计算器</h1>
+  <p class="subtitle">BMR · TDEE · 训练消耗 · 饮食追踪 — 基于科学研究</p>
 </header>
 
-<!-- ===== MAIN ===== -->
+<!-- ===== Page Navigation ===== -->
+<nav class="page-nav">
+  <button class="page-nav-btn active" onclick="switchPage('page1')" id="navPage1">📊 身体数据 & 目标</button>
+  <button class="page-nav-btn" onclick="switchPage('page2')" id="navPage2">🏋️ 训练 & 饮食记录</button>
+</nav>
+
+<!-- ================================================================ -->
+<!-- PAGE 1: BODY DATA + BMR + GOALS -->
+<!-- ================================================================ -->
+<div class="page active" id="page1">
 <div class="container">
 <div class="main-grid">
 
@@ -1031,7 +742,7 @@ checkSession();
     <label>身高</label>
     <div class="input-row">
       <input type="number" id="height" value="170" min="80" max="250" step="0.1" placeholder="输入身高">
-      <span class="unit" id="heightUnit">cm</span>
+      <span class="unit">cm</span>
     </div>
   </div>
 
@@ -1040,36 +751,23 @@ checkSession();
     <label>体重</label>
     <div class="input-row">
       <input type="number" id="weight" value="65" min="20" max="400" step="0.1" placeholder="输入体重">
-      <span class="unit" id="weightUnit">kg</span>
+      <span class="unit">kg</span>
     </div>
   </div>
 
   <!-- Body Fat (Optional) -->
-  <div class="optional-field">
-    <span class="optional-toggle" id="optToggle">＋ 添加体脂率（用于 Katch-McArdle 公式）</span>
-    <div class="optional-content" id="optContent">
-      <div class="form-group">
-        <label>体脂率</label>
-        <div class="input-row">
-          <input type="number" id="bodyFat" value="20" min="2" max="60" step="0.1" placeholder="输入体脂率">
-          <span class="unit">%</span>
-        </div>
-      </div>
-      <div class="slider-group">
-        <input type="range" id="bodyFatSlider" min="2" max="60" value="20" step="0.5">
-        <div class="slider-labels"><span>2% (极低)</span><span>60%</span></div>
-      </div>
+  <div class="form-group" style="margin-bottom:6px;">
+    <label>体脂率 (可选)</label>
+    <div class="input-row">
+      <input type="number" id="bodyFat" value="20" min="2" max="60" step="0.1" placeholder="输入体脂率">
+      <span class="unit">%</span>
     </div>
   </div>
 
   <!-- Activity Level -->
-  <div class="form-group" style="margin-top: 6px;">
-    <label>🏃 活动水平（用于 TDEE 计算）</label>
-    <select id="activityLevel" style="
-      width: 100%; padding: 10px 14px; border: 2px solid var(--border);
-      border-radius: 10px; font-size: 0.9rem; font-family: inherit;
-      background: #f8fafc; cursor: pointer; outline: none;
-    ">
+  <div class="form-group" style="margin-top:6px;">
+    <label>🏃 活动水平（TDEE 计算用）</label>
+    <select id="activityLevel" style="width:100%;padding:10px 14px;border:2px solid var(--border);border-radius:10px;font-size:0.9rem;font-family:inherit;background:#f8fafc;cursor:pointer;outline:none;">
       <option value="1.2">久坐不动 — 几乎不运动，办公室工作</option>
       <option value="1.375">轻度活动 — 每周运动 1-3 天</option>
       <option value="1.55" selected>中度活动 — 每周运动 3-5 天</option>
@@ -1080,12 +778,8 @@ checkSession();
 
   <!-- Goal -->
   <div class="form-group">
-    <label>🎯 目标</label>
-    <select id="goal" style="
-      width: 100%; padding: 10px 14px; border: 2px solid var(--border);
-      border-radius: 10px; font-size: 0.9rem; font-family: inherit;
-      background: #f8fafc; cursor: pointer; outline: none;
-    ">
+    <label>🎯 热量目标</label>
+    <select id="goal" style="width:100%;padding:10px 14px;border:2px solid var(--border);border-radius:10px;font-size:0.9rem;font-family:inherit;background:#f8fafc;cursor:pointer;outline:none;">
       <option value="maintain" selected>保持体重</option>
       <option value="mildLoss">温和减重（-250 kcal/天）</option>
       <option value="moderateLoss">适度减重（-500 kcal/天）</option>
@@ -1094,20 +788,31 @@ checkSession();
     </select>
   </div>
 
-  <!-- Save Button -->
-    <div style="margin-top: 10px; display: flex; align-items: center; gap: 10px;">
-      <button id="saveProfileBtn" onclick="manualSave()" style="
-        padding: 7px 18px; border: 1.5px solid var(--primary); border-radius: 8px;
-        font-weight: 600; font-size: 0.82rem; cursor: pointer; font-family: inherit;
-        background: #fff; color: var(--primary); transition: all 0.2s; white-space: nowrap;
-      ">💾 保存</button>
-      <span style="font-size:0.7rem;color:var(--text-secondary);" id="saveStatus">登录后可保存</span>
+  <!-- Target Weight -->
+  <div class="form-group">
+    <label>🎯 目标体重（可选）</label>
+    <div style="display:flex;gap:8px;">
+      <div class="input-row" style="flex:1;">
+        <input type="number" id="targetWeight" min="30" max="400" step="0.1" placeholder="目标体重">
+        <span class="unit">kg</span>
+      </div>
+      <select id="targetDirection" style="width:100px;padding:10px;border:2px solid var(--border);border-radius:10px;font-size:0.85rem;font-family:inherit;background:#f8fafc;outline:none;">
+        <option value="lose">减脂</option>
+        <option value="gain">增肌</option>
+      </select>
     </div>
+  </div>
+
+  <!-- Save Button -->
+  <div style="margin-top:10px;display:flex;align-items:center;gap:10px;">
+    <button id="saveProfileBtn" onclick="manualSave()" style="padding:7px 18px;border:1.5px solid var(--primary);border-radius:8px;font-weight:600;font-size:0.82rem;cursor:pointer;font-family:inherit;background:#fff;color:var(--primary);transition:all 0.2s;white-space:nowrap;">💾 保存</button>
+    <span style="font-size:0.7rem;color:var(--text-secondary);" id="saveStatus">登录后可保存</span>
+  </div>
 </div>
 
-  <!-- ===== RESULTS PANEL ===== -->
+<!-- ===== RESULTS PANEL ===== -->
 <div>
-  <!-- TDEE + BMR + Goal Combined -->
+  <!-- TDEE + BMR Combined -->
   <div class="tdee-section animate-in">
     <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:12px;">
       <div style="flex:1;min-width:200px;">
@@ -1123,14 +828,28 @@ checkSession();
     </div>
 
     <!-- Goal Quick Cards -->
-    <div style="display:flex;gap:8px;margin-top:14px;flex-wrap:wrap;" id="goalQuickCards">
-    </div>
-
+    <div style="display:flex;gap:8px;margin-top:14px;flex-wrap:wrap;" id="goalQuickCards"></div>
     <div class="tdee-note" id="tdeeNote" style="margin-top:10px;"></div>
   </div>
 
+  <!-- Target Weight Progress -->
+  <div class="target-section animate-in" id="targetProgressSection" style="display:none;">
+    <div style="display:flex;justify-content:space-between;align-items:center;">
+      <div style="font-weight:700;font-size:0.9rem;">🎯 目标进度</div>
+      <div style="font-size:0.8rem;color:var(--text-secondary);" id="targetProgressText"></div>
+    </div>
+    <div class="target-progress-bar">
+      <div class="target-progress-fill" id="targetProgressFill" style="width:0%;"></div>
+    </div>
+    <div style="display:flex;justify-content:space-between;font-size:0.7rem;color:var(--text-secondary);margin-top:4px;">
+      <span id="targetStartLabel">当前: -- kg</span>
+      <span id="targetEndLabel">目标: -- kg</span>
+    </div>
+    <div style="margin-top:8px;padding:8px 12px;background:#fff;border-radius:8px;font-size:0.75rem;color:var(--text-secondary);" id="targetRecommendation"></div>
+  </div>
+
   <!-- Macro + BMI row -->
-  <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:20px;">
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:20px;">
     <!-- Macro Nutrients -->
     <div class="card animate-in">
       <div class="card-title"><span class="icon">🍽️</span> 宏量营养素建议</div>
@@ -1156,14 +875,14 @@ checkSession();
       </div>
       <p style="font-size:0.65rem;color:var(--text-secondary);margin-top:6px;" id="macroVerify"></p>
       <p style="font-size:0.7rem;color:var(--text-secondary);margin-top:10px;">
-        * 蛋白质按体重与活动水平计算，脂肪 25%，碳水填补剩余热量。宏量总和 = 目标卡路里
+        * 蛋白质按体重 × 活动水平 (1.2-2.0 g/kg)，脂肪 25%，碳水填补剩余热量
       </p>
     </div>
 
     <!-- BMI -->
     <div class="card animate-in">
       <div class="card-title"><span class="icon">⚖️</span> 身体质量指数 (BMI)</div>
-      <div style="text-align:center; margin-bottom:16px;">
+      <div style="text-align:center;margin-bottom:16px;">
         <span style="font-size:3rem;font-weight:800;color:var(--primary-dark);" id="bmiValue">--</span>
         <span style="font-size:0.9rem;color:var(--text-secondary);display:block;" id="bmiCategory"></span>
       </div>
@@ -1172,23 +891,62 @@ checkSession();
           <div class="bmi-indicator" id="bmiIndicator" style="left:50%;"></div>
         </div>
         <div class="bmi-labels">
-          <span>&lt;18.5 偏瘦</span><span>18.5-24.9 正常</span><span>25-29.9 超重</span><span>≥30 肥胖</span>
+          <span>&lt;18.5 偏瘦</span><span>18.5-24.9 正常</span><span>25-29.9 超重</span><span>&ge;30 肥胖</span>
         </div>
       </div>
       <p style="font-size:0.78rem;color:var(--text-secondary);margin-top:12px;text-align:center;" id="idealWeight"></p>
     </div>
   </div>
 
-  </div><!-- /main-grid -->
+  <!-- References -->
+  <div class="ref-section card">
+    <h3>📚 科学参考文献</h3>
+    <div class="ref-grid">
+      <div class="ref-item">
+        <div class="ref-title">Mifflin-St Jeor 方程 (1990)</div>
+        <div class="ref-detail">Mifflin MD, et al. "A new predictive equation for resting energy expenditure in healthy individuals." <em>American Journal of Clinical Nutrition</em>, 1990; 51(2): 241-247.</div>
+        <span class="ref-link">🔬 美国营养与饮食学会 (AND) 推荐为最准确的 BMR 预测公式</span>
+      </div>
+      <div class="ref-item">
+        <div class="ref-title">ACSM 减重指南 (2021)</div>
+        <div class="ref-detail">American College of Sports Medicine. "ACSM's Guidelines for Exercise Testing and Prescription." 11th ed. 建议每周减重 0.5-1 kg（热量缺口 500-1000 kcal/天）为安全速率。</div>
+      </div>
+      <div class="ref-item">
+        <div class="ref-title">蛋白质摄入建议</div>
+        <div class="ref-detail">Jäger R, et al. "International Society of Sports Nutrition Position Stand: protein and exercise." <em>JISSN</em>, 2017. 建议运动人群 1.4-2.0 g/kg/天。</div>
+      </div>
+      <div class="ref-item">
+        <div class="ref-title">宏量营养素分布</div>
+        <div class="ref-detail">Institute of Medicine. "Dietary Reference Intakes for Energy, Carbohydrate, Fiber, Fat, Fatty Acids, Cholesterol, Protein, and Amino Acids." National Academies Press, 2005.</div>
+      </div>
+    </div>
+  </div>
+</div>
 
+</div><!-- /main-grid -->
+</div><!-- /container -->
+</div><!-- /page1 -->
+<!-- ================================================================ -->
+<!-- PAGE 2: TRAINING + FOOD DIARY -->
+<!-- ================================================================ -->
+<div class="page" id="page2">
+<div class="container">
+
+<!-- Page 2 Tabs -->
+<div class="page2-tabs">
+  <div class="page2-tab active" onclick="switchPage2Tab('exercise')" id="tabExercise">🏋️ 训练消耗计算器</div>
+  <div class="page2-tab" onclick="switchPage2Tab('diet')" id="tabDiet">🍽️ 饮食记录</div>
+</div>
 
 <!-- ===== EXERCISE CALCULATOR ===== -->
+<div class="page2-content active" id="contentExercise">
 <div class="card exercise-panel animate-in">
-  <div class="card-title"><span class="icon">🏋️</span> 训练消耗计算器 <span style="font-size:0.7rem;font-weight:400;color:var(--text-secondary);margin-left:8px;">基于物理做功 + MET代谢当量</span></div>
+  <div class="card-title"><span class="icon">🏋️</span> 训练消耗计算器 <span style="font-size:0.7rem;font-weight:400;color:var(--text-secondary);margin-left:8px;">物理做功 + MET代谢当量</span></div>
 
   <p style="font-size:0.78rem;color:var(--text-secondary);margin-bottom:14px;">
-    📐 计算原理：<strong>热量 = (重量 × 9.8 × 动作行程 × 次数 × 组数) ÷ 肌肉效率 ÷ 4184</strong> + MET时间消耗。
-    重量越大、行程越长，消耗越接近真实值。<br>⚠️ <strong>重量填写规则</strong>：杠铃填总重（杆+片）｜哑铃双臂同时填两只总重，单臂交替填单只｜绳索/器械填插片重量｜自重动作填体重。
+    📐 计算原理：<strong>热量 = (重量 × 9.8 × 动作行程 × 次数 × 组数) ÷ 肌肉效率(22%) ÷ 4184</strong> + MET时间消耗。
+    重量越大、行程越长，消耗越接近真实值。<br>
+    ⚠️ <strong>重量填写规则</strong>：杠铃填总重（杆+片）｜哑铃双臂同时填两只总重，单臂交替填单只｜绳索/器械填插片重量｜自重动作填体重
   </p>
 
   <div class="exercise-selector">
@@ -1238,619 +996,112 @@ checkSession();
 
   <!-- Integration note -->
   <div style="margin-top:12px;padding:10px 14px;background:#fffbeb;border-radius:8px;font-size:0.78rem;color:#92400e;border:1px solid #fde68a;display:none;" id="integrationNote">
-    💡 <strong>每日总消耗</strong> = 静息 BMR 平均 <span id="integrateBmr">--</span> × 日常活动系数 <span id="integrateActivity">--</span> + 训练消耗 <span id="integrateEx">0</span> = <strong><span id="integrateTotal">--</span> kcal/天</strong>
+    💡 <strong>每日总消耗</strong> = 静息 BMR <span id="integrateBmr">--</span> × 日常活动系数 <span id="integrateActivity">--</span> + 训练消耗 <span id="integrateEx">0</span> = <strong><span id="integrateTotal">--</span> kcal/天</strong>
   </div>
 </div>
+</div>
 
+<!-- ===== FOOD DIARY ===== -->
+<div class="page2-content" id="contentDiet">
+<div class="card animate-in">
+  <div class="card-title"><span class="icon">🍽️</span> 饮食记录 <span style="font-size:0.7rem;font-weight:400;color:var(--text-secondary);margin-left:8px;">食物数据库收录 350+ 常见食物</span></div>
 
-<!-- ===== REFERENCES ===== -->
-<div class="ref-section card">
-  <h3>📚 科学参考文献</h3>
-  <div class="ref-grid">
-
-    <div class="ref-item">
-      <div class="ref-title">Mifflin-St Jeor 方程 (1990)</div>
-      <div class="ref-detail">Mifflin MD, et al. "A new predictive equation for resting energy expenditure in healthy individuals." <em>American Journal of Clinical Nutrition</em>, 1990; 51(2): 241-247.</div>
-      <span class="ref-link">🔬 美国营养与饮食学会 (AND) 推荐为最准确的 BMR 预测公式</span>
-    </div>
-
-    <div class="ref-item">
-      <div class="ref-title">Harris-Benedict 方程 (1919, 修订 1984)</div>
-      <div class="ref-detail">Harris JA, Benedict FG. "A Biometric Study of Basal Metabolism in Man." Carnegie Institution of Washington, 1919. 修订：Roza AM, Shizgal HM. <em>Am J Clin Nutr</em>, 1984; 40(1): 168-182.</div>
-    </div>
-
-    <div class="ref-item">
-      <div class="ref-title">WHO/FAO/UNU 方程 (1985)</div>
-      <div class="ref-detail">FAO/WHO/UNU. "Energy and Protein Requirements." WHO Technical Report Series 724, Geneva, 1985.</div>
-      <span class="ref-link">🌐 世界卫生组织国际标准</span>
-    </div>
-
-    <div class="ref-item">
-      <div class="ref-title">Katch-McArdle 公式 (1996)</div>
-      <div class="ref-detail">McArdle WD, Katch FI, Katch VL. "Exercise Physiology: Energy, Nutrition, and Human Performance." 4th ed. Williams & Wilkins, 1996.</div>
-      <span class="ref-link">💪 基于瘦体重 (LBM)，对运动员更准确</span>
-    </div>
-
-    <div class="ref-item">
-      <div class="ref-title">Schofield 方程 (1985)</div>
-      <div class="ref-detail">Schofield WN. "Predicting basal metabolic rate, new standards and review of previous work." <em>Human Nutrition: Clinical Nutrition</em>, 1985; 39 Suppl 1: 5-41.</div>
-      <span class="ref-link">📖 被 WHO 采纳的基础公式</span>
-    </div>
-
-    <div class="ref-item">
-      <div class="ref-title">TDEE 活动系数</div>
-      <div class="ref-detail">基于 Katch-McArdle 研究及 ACSM 指南：久坐(1.2) / 轻度(1.375) / 中度(1.55) / 高度(1.725) / 极度(1.9)。<em>ACSM's Guidelines for Exercise Testing and Prescription</em>, 11th ed., 2021.</div>
-    </div>
-
-    <div class="ref-item">
-      <div class="ref-title">宏量营养素分布建议</div>
-      <div class="ref-detail">Institute of Medicine. "Dietary Reference Intakes for Energy, Carbohydrate, Fiber, Fat, Fatty Acids, Cholesterol, Protein, and Amino Acids." National Academies Press, 2005.</div>
-    </div>
-
-    <div class="ref-item">
-      <div class="ref-title">BMI 分类标准</div>
-      <div class="ref-detail">WHO. "Obesity: Preventing and Managing the Global Epidemic." WHO Technical Report Series 894, 2000.</div>
-    </div>
-
+  <!-- Food Search -->
+  <div class="food-search-box">
+    <input type="text" id="foodSearch" placeholder="🔍 搜索食物...（如：米饭、鸡胸肉、苹果）" oninput="searchFood()" onfocus="searchFood()">
+    <div class="food-search-results" id="foodSearchResults"></div>
   </div>
+
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+    <!-- Left column: Breakfast + Lunch -->
+    <div>
+      <!-- Breakfast -->
+      <div class="meal-section" id="mealBreakfast">
+        <div class="meal-header breakfast" onclick="toggleMeal('breakfast')">
+          <span>🌅 早餐</span>
+          <span style="font-size:0.8rem;opacity:0.7;" id="breakfastTotal">0 kcal</span>
+        </div>
+        <div class="meal-items" id="breakfastItems">
+          <div style="font-size:0.78rem;color:var(--text-secondary);padding:8px 6px;">点击上方搜索食物，添加到早餐</div>
+        </div>
+      </div>
+
+      <!-- Lunch -->
+      <div class="meal-section" id="mealLunch">
+        <div class="meal-header lunch" onclick="toggleMeal('lunch')">
+          <span>🌞 午餐</span>
+          <span style="font-size:0.8rem;opacity:0.7;" id="lunchTotal">0 kcal</span>
+        </div>
+        <div class="meal-items" id="lunchItems">
+          <div style="font-size:0.78rem;color:var(--text-secondary);padding:8px 6px;">点击上方搜索食物，添加到午餐</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right column: Dinner + Snacks -->
+    <div>
+      <!-- Dinner -->
+      <div class="meal-section" id="mealDinner">
+        <div class="meal-header dinner" onclick="toggleMeal('dinner')">
+          <span>🌙 晚餐</span>
+          <span style="font-size:0.8rem;opacity:0.7;" id="dinnerTotal">0 kcal</span>
+        </div>
+        <div class="meal-items" id="dinnerItems">
+          <div style="font-size:0.78rem;color:var(--text-secondary);padding:8px 6px;">点击上方搜索食物，添加到晚餐</div>
+        </div>
+      </div>
+
+      <!-- Snacks -->
+      <div class="meal-section" id="mealSnacks">
+        <div class="meal-header snack" onclick="toggleMeal('snacks')">
+          <span>🍪 加餐/零食</span>
+          <span style="font-size:0.8rem;opacity:0.7;" id="snacksTotal">0 kcal</span>
+        </div>
+        <div class="meal-items" id="snacksItems">
+          <div style="font-size:0.78rem;color:var(--text-secondary);padding:8px 6px;">点击上方搜索食物，添加到加餐</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Daily Summary -->
+  <div class="daily-summary">
+    <div class="daily-stat" style="background:#fef2f2;">
+      <div class="stat-label">今日摄入</div>
+      <div class="stat-value" id="dailyCalTotal" style="color:#ef4444;">0</div>
+      <div class="stat-goal">kcal</div>
+    </div>
+    <div class="daily-stat" style="background:#fffbeb;">
+      <div class="stat-label">蛋白质</div>
+      <div class="stat-value" id="dailyProtein" style="color:#f59e0b;">0</div>
+      <div class="stat-goal">克</div>
+    </div>
+    <div class="daily-stat" style="background:#ecfdf5;">
+      <div class="stat-label">碳水</div>
+      <div class="stat-value" id="dailyCarbs" style="color:#10b981;">0</div>
+      <div class="stat-goal">克</div>
+    </div>
+    <div class="daily-stat" style="background:#f0f9ff;">
+      <div class="stat-label">脂肪</div>
+      <div class="stat-value" id="dailyFat" style="color:#0ea5e9;">0</div>
+      <div class="stat-goal">克</div>
+    </div>
+  </div>
+  <div style="text-align:right;margin-top:4px;">
+    <button onclick="clearMeals()" style="padding:6px 14px;border:1px solid #ef4444;border-radius:6px;background:#fff;color:#ef4444;font-size:0.75rem;cursor:pointer;font-family:inherit;">清空今日饮食</button>
+  </div>
+</div>
 </div>
 
 </div><!-- /container -->
-
-<!-- ===== FOOTER ===== -->
+</div><!-- /page2 -->
+<!-- Footer + Auth Modal + Toast -->
 <div class="footer">
   <p>本计算器仅供参考，不构成医疗建议。如需个性化营养方案，请咨询注册营养师或医生。</p>
-  <p class="disclaimer">所有公式均来自同行评审科学文献。BMR 计算存在 ±10% 的个体差异，实际代谢率受基因、激素、肌肉量等多因素影响。</p>
+  <p class="disclaimer">食物数据综合自《中国食物成分表》、国家食物与营养咨询委员会等权威来源。BMR 计算存在 ±10% 的个体差异。</p>
 </div>
 
-<!-- ===== SCRIPTS ===== -->
-<script>
-"use strict";
-
-// ============ DOM Elements ============
-const els = {
-  genderMale: document.getElementById('gender-male'),
-  genderFemale: document.getElementById('gender-female'),
-  age: document.getElementById('age'),
-  height: document.getElementById('height'),
-  weight: document.getElementById('weight'),
-  bodyFat: document.getElementById('bodyFat'),
-  bodyFatSlider: document.getElementById('bodyFatSlider'),
-  activityLevel: document.getElementById('activityLevel'),
-  goal: document.getElementById('goal'),
-  bmrGrid: document.getElementById('bmrGrid'),
-  tdeeValue: document.getElementById('tdeeValue'),
-  tdeeActivityLabel: document.getElementById('tdeeActivityLabel'),
-  tdeeNote: document.getElementById('tdeeNote'),
-  avgBmrLabel: document.getElementById('avgBmrLabel'),
-  macroProtein: document.getElementById('macroProtein'),
-  macroCarbs: document.getElementById('macroCarbs'),
-  macroFat: document.getElementById('macroFat'),
-  bmiValue: document.getElementById('bmiValue'),
-  bmiCategory: document.getElementById('bmiCategory'),
-  bmiIndicator: document.getElementById('bmiIndicator'),
-  idealWeight: document.getElementById('idealWeight'),
-  goalLabel: document.getElementById('goalLabel'),
-  goalCalories: document.getElementById('goalCalories'),
-  optToggle: document.getElementById('optToggle'),
-  optContent: document.getElementById('optContent'),
-};
-
-// ============ BMR Formulas ============
-// All formulas return kcal/day. W = weight(kg), H = height(cm), A = age(years)
-
-function bmrMifflinStJeor(gender, W, H, A) {
-  // Mifflin et al., 1990. Am J Clin Nutr.
-  return gender === 'male' ? 10*W + 6.25*H - 5*A + 5 : 10*W + 6.25*H - 5*A - 161;
-}
-
-function bmrHarrisBenedictRevised(gender, W, H, A) {
-  // Roza & Shizgal, 1984 revision of Harris-Benedict 1919
-  return gender === 'male' ? 88.362 + 13.397*W + 4.799*H - 5.677*A : 447.593 + 9.247*W + 3.098*H - 4.330*A;
-}
-
-function bmrWhoFaoUnu(gender, W, H, A) {
-  // WHO/FAO/UNU, 1985. Technical Report 724.
-  if (gender === 'male') {
-    if (A < 18) return 17.686*W + 658.2;
-    if (A <= 30) return 15.057*W + 692.2;
-    if (A <= 60) return 11.472*W + 873.1;
-    return 11.711*W + 587.7;
-  } else {
-    if (A < 18) return 13.384*W + 692.6;
-    if (A <= 30) return 14.818*W + 486.6;
-    if (A <= 60) return 8.126*W + 845.6;
-    return 9.082*W + 658.5;
-  }
-}
-
-function bmrKatchMcArdle(W, bodyFatPct) {
-  // Katch-McArdle, 1996. Based on lean body mass.
-  const LBM = W * (1 - bodyFatPct / 100);
-  return 370 + 21.6 * LBM;
-}
-
-function bmrSchofield(gender, W, H, A) {
-  // Schofield, 1985. Hum Nutr Clin Nutr. Basis for WHO equations.
-  if (gender === 'male') {
-    if (A < 18) return 17.686*W + 658.2;
-    if (A <= 30) return 15.057*W + 692.2;
-    if (A <= 60) return 11.472*W + 873.1;
-    return 11.711*W + 587.7;
-  } else {
-    if (A < 18) return 13.384*W + 692.6;
-    if (A <= 30) return 14.818*W + 486.6;
-    if (A <= 60) return 8.126*W + 845.6;
-    return 9.082*W + 658.5;
-  }
-}
-
-// ============ TDEE Multipliers ============
-const activityMultipliers = {
-  '1.2': { label: '久坐不动', desc: '几乎不运动 · 办公室工作' },
-  '1.375': { label: '轻度活动', desc: '每周运动 1-3 天' },
-  '1.55': { label: '中度活动', desc: '每周运动 3-5 天' },
-  '1.725': { label: '高度活动', desc: '每周运动 6-7 天' },
-  '1.9': { label: '极度活跃', desc: '高强度体力劳动 / 每天训练' },
-};
-
-// ============ Goal Adjustments ============
-const goalAdjustments = {
-  'maintain': { label: '🎯 保持体重 — 每日目标热量', adjustment: 0 },
-  'mildLoss': { label: '🥗 温和减重 — 每日目标热量 (-250 kcal)', adjustment: -250 },
-  'moderateLoss': { label: '🔥 适度减重 — 每日目标热量 (-500 kcal)', adjustment: -500 },
-  'mildGain': { label: '💪 温和增重 — 每日目标热量 (+250 kcal)', adjustment: 250 },
-  'moderateGain': { label: '🏋️ 适度增重 — 每日目标热量 (+500 kcal)', adjustment: 500 },
-};
-
-
-// ============ Exercise Database ============
-// Each exercise: { name, category, rom (range of motion in meters), met }
-// ROM values represent the vertical distance the weight travels per rep
-// MET values from Compendium of Physical Activities (2011 update) for resistance training
-const exercises = [
-  // ── 胸部 Chest ──
-  { name: '杠铃卧推', category: '胸部', rom: 0.50, met: 6.0 },
-  { name: '哑铃卧推', category: '胸部', rom: 0.50, met: 6.0 },
-  { name: '上斜杠铃卧推', category: '胸部', rom: 0.50, met: 6.0 },
-  { name: '上斜哑铃卧推', category: '胸部', rom: 0.50, met: 5.5 },
-  { name: '下斜卧推', category: '胸部', rom: 0.50, met: 6.0 },
-  { name: '哑铃飞鸟', category: '胸部', rom: 0.45, met: 5.0 },
-  { name: '绳索夹胸', category: '胸部', rom: 0.45, met: 5.0 },
-  { name: '蝴蝶机夹胸', category: '胸部', rom: 0.50, met: 5.0 },
-  { name: '双杠臂屈伸', category: '胸部', rom: 0.40, met: 6.5 },
-  { name: '俯卧撑', category: '胸部', rom: 0.35, met: 5.5 },
-  { name: '器械推胸', category: '胸部', rom: 0.45, met: 5.0 },
-
-  // ── 背部 Back ──
-  { name: '杠铃划船', category: '背部', rom: 0.60, met: 6.0 },
-  { name: '哑铃单臂划船', category: '背部', rom: 0.60, met: 5.5 },
-  { name: '引体向上', category: '背部', rom: 0.50, met: 7.0 },
-  { name: '高位下拉', category: '背部', rom: 0.50, met: 5.5 },
-  { name: '坐姿绳索划船', category: '背部', rom: 0.50, met: 5.0 },
-  { name: 'T杠划船', category: '背部', rom: 0.60, met: 6.0 },
-  { name: '面拉', category: '背部', rom: 0.50, met: 4.5 },
-  { name: '直臂下压', category: '背部', rom: 0.40, met: 4.5 },
-  { name: '硬拉(传统)', category: '背部', rom: 0.90, met: 8.0 },
-
-  // ── 肩部 Shoulders ──
-  { name: '杠铃推举', category: '肩部', rom: 0.50, met: 6.0 },
-  { name: '哑铃推举', category: '肩部', rom: 0.50, met: 5.5 },
-  { name: '阿诺德推举', category: '肩部', rom: 0.50, met: 5.5 },
-  { name: '侧平举', category: '肩部', rom: 0.60, met: 4.5 },
-  { name: '前平举', category: '肩部', rom: 0.55, met: 4.5 },
-  { name: '俯身飞鸟', category: '肩部', rom: 0.50, met: 4.5 },
-  { name: '杠铃提拉', category: '肩部', rom: 0.55, met: 5.5 },
-
-  // ── 手臂 Arms ──
-  { name: '杠铃弯举', category: '手臂', rom: 0.40, met: 5.0 },
-  { name: '哑铃弯举', category: '手臂', rom: 0.40, met: 4.5 },
-  { name: '锤式弯举', category: '手臂', rom: 0.40, met: 4.5 },
-  { name: '牧师凳弯举', category: '手臂', rom: 0.35, met: 4.5 },
-  { name: '绳索下压', category: '手臂', rom: 0.35, met: 4.5 },
-  { name: '仰卧臂屈伸', category: '手臂', rom: 0.35, met: 4.5 },
-  { name: '窄距卧推', category: '手臂', rom: 0.45, met: 5.5 },
-  { name: '集中弯举', category: '手臂', rom: 0.40, met: 4.0 },
-
-  // ── 腿部 Legs ──
-  { name: '杠铃深蹲', category: '腿部', rom: 0.80, met: 7.0 },
-  { name: '前蹲', category: '腿部', rom: 0.80, met: 7.0 },
-  { name: '保加利亚分腿蹲', category: '腿部', rom: 0.70, met: 6.5 },
-  { name: '罗马尼亚硬拉', category: '腿部', rom: 0.80, met: 7.0 },
-  { name: '腿举', category: '腿部', rom: 0.50, met: 6.0 },
-  { name: '哈克深蹲', category: '腿部', rom: 0.75, met: 6.5 },
-  { name: '弓步蹲', category: '腿部', rom: 0.70, met: 6.0 },
-  { name: '腿屈伸', category: '腿部', rom: 0.40, met: 5.0 },
-  { name: '腿弯举', category: '腿部', rom: 0.40, met: 5.0 },
-  { name: '臀推', category: '腿部', rom: 0.35, met: 5.5 },
-  { name: '提踵', category: '腿部', rom: 0.15, met: 4.5 },
-
-  // ── 核心 Core ──
-  { name: '卷腹', category: '核心', rom: 0.30, met: 4.0 },
-  { name: '悬垂举腿', category: '核心', rom: 0.35, met: 5.0 },
-  { name: '俄罗斯转体', category: '核心', rom: 0.30, met: 4.5 },
-  { name: '平板支撑', category: '核心', rom: 0.00, met: 3.5 },
-  { name: '腹肌轮', category: '核心', rom: 0.40, met: 5.5 },
-  { name: '山羊挺身', category: '核心', rom: 0.40, met: 5.0 },
-
-  // ── 全身/其他 Full Body ──
-  { name: '壶铃摇摆', category: '全身', rom: 0.90, met: 8.0 },
-  { name: '波比跳', category: '全身', rom: 0.50, met: 10.0 },
-  { name: '战绳', category: '全身', rom: 0.80, met: 9.0 },
-  { name: '农夫行走', category: '全身', rom: 0.05, met: 6.0 },
-];
-
-// Muscle efficiency constant (~22% for trained, ~18% for untrained)
-const MUSCLE_EFFICIENCY = 0.22;
-const GRAVITY = 9.8; // m/s²
-const KCAL_PER_JOULE = 1 / 4184;
-
-// Per-exercise calorie calculation
-function calcExerciseCalories(ex, weightKg, reps, sets, restSec, bodyWeightKg) {
-  // 1) Mechanical work component
-  const workPerRep = weightKg * GRAVITY * ex.rom; // joules per rep
-  const totalWork = workPerRep * reps * sets;
-  const workKcal = totalWork * KCAL_PER_JOULE / MUSCLE_EFFICIENCY;
-
-  // 2) MET time-based component (covers EPOC, core engagement, non-mechanical cost)
-  const activeTimeH = (reps * sets * 2.5) / 3600; // 2.5s per rep average
-  const restTimeH = ((sets - 1) * restSec) / 3600;
-  const totalTimeH = activeTimeH + restTimeH;
-  const metKcal = ex.met * bodyWeightKg * Math.max(totalTimeH, activeTimeH * 1.5);
-
-  return {
-    workKcal: Math.round(workKcal * 10) / 10,
-    metKcal: Math.round(metKcal * 10) / 10,
-    total: Math.round((workKcal + metKcal) * 10) / 10,
-    workJoules: Math.round(totalWork),
-    activeTimeMin: Math.round(activeTimeH * 60 * 10) / 10,
-    totalTimeMin: Math.round(totalTimeH * 60 * 10) / 10,
-  };
-}
-
-// ============ Calculate ============
-function calculate() {
-  const gender = els.genderMale.checked ? 'male' : 'female';
-  const age = parseFloat(els.age.value) || 30;
-  const height = parseFloat(els.height.value) || 170;
-  const weight = parseFloat(els.weight.value) || 65;
-  const bodyFat = parseFloat(els.bodyFat.value) || 20;
-  const activityLevel = els.activityLevel.value;
-  const goal = els.goal.value;
-
-  // BMR calculations
-  const bmrM = Math.round(bmrMifflinStJeor(gender, weight, height, age));
-  const bmrHB = Math.round(bmrHarrisBenedictRevised(gender, weight, height, age));
-  const bmrWHO = Math.round(bmrWhoFaoUnu(gender, weight, height, age));
-  const bmrKC = bodyFat > 0 ? Math.round(bmrKatchMcArdle(weight, bodyFat)) : null;
-  const bmrSCH = Math.round(bmrSchofield(gender, weight, height, age));
-
-  // Collect valid results
-  const formulas = [
-    { name: 'Mifflin-St Jeor', value: bmrM, year: '1990', key: 'mifflin', recommended: true },
-    { name: 'Harris-Benedict', value: bmrHB, year: '1984', key: 'harris' },
-    { name: 'WHO/FAO/UNU', value: bmrWHO, year: '1985', key: 'who' },
-    { name: 'Schofield', value: bmrSCH, year: '1985', key: 'schofield' },
-  ];
-  if (bmrKC !== null) {
-    formulas.push({ name: 'Katch-McArdle', value: bmrKC, year: '1996', key: 'katch', note: '基于瘦体重' });
-  }
-
-  // Average BMR (excluding Katch-McArdle if present, or use all)
-  const standardBmrs = formulas.filter(f => f.key !== 'katch').map(f => f.value);
-  const avgBMR = Math.round(standardBmrs.reduce((a, b) => a + b, 0) / standardBmrs.length);
-
-  // TDEE
-  const tdeeMultiplier = parseFloat(activityLevel);
-  const tdee = Math.round(avgBMR * tdeeMultiplier);
-  const actInfo = activityMultipliers[activityLevel];
-
-  // Goal calories
-  const goalInfo = goalAdjustments[goal];
-  const goalCal = Math.round(tdee + goalInfo.adjustment);
-
-  // ===== Render =====
-
-  // BMR display — Mifflin-St Jeor only (recommended by AND)
-  const bmrMifflin = formulas.find(f => f.key === 'mifflin');
-  if (bmrMifflin) {
-    document.getElementById('tdeeBmrValue').textContent = bmrMifflin.value.toLocaleString() + ' kcal';
-    document.getElementById('tdeeBmrSource').innerHTML = 'Mifflin-St Jeor (1990)<br>AND 推荐 · 最准确';
-  }
-
-  // Goal quick chips — all 5 targets at a glance
-  const goalChips = [
-    { key: 'moderateLoss', label: '🔥 减重', sub: '-500' },
-    { key: 'mildLoss', label: '🥗 温和减', sub: '-250' },
-    { key: 'maintain', label: '⚖️ 保持', sub: '±0' },
-    { key: 'mildGain', label: '💪 温和增', sub: '+250' },
-    { key: 'moderateGain', label: '🏋️ 增肌', sub: '+500' },
-  ];
-  const curGoal = els.goal.value;
-  const container = document.getElementById('goalQuickCards');
-  if (container) {
-    container.innerHTML = goalChips.map(g => {
-      const cal = Math.round(tdee + goalAdjustments[g.key].adjustment);
-      const act = g.key === curGoal;
-      return '<div class="goal-chip' + (act ? ' active' : '') + '"'
-        + ' onclick="els.goal.value=\'' + g.key + '\';calculate();"'
-        + ' style="flex:1;min-width:88px;padding:10px 6px;border-radius:10px;text-align:center;cursor:pointer;transition:all 0.2s;'
-        + 'background:' + (act ? 'rgba(255,255,255,0.25)' : 'rgba(255,255,255,0.08)') + ';'
-        + 'border:1.5px solid ' + (act ? 'rgba(255,255,255,0.5)' : 'rgba(255,255,255,0.12)') + ';'
-        + 'color:#fff;">'
-        + '<div style="font-size:0.68rem;opacity:0.85;">' + g.label + '</div>'
-        + '<div style="font-size:1.15rem;font-weight:800;">' + cal.toLocaleString() + '</div>'
-        + '<div style="font-size:0.6rem;opacity:0.6;">' + g.sub + ' kcal</div>'
-        + '</div>';
-    }).join('');
-  }
-
-  // // TDEE
-  els.tdeeValue.textContent = tdee.toLocaleString() + ' kcal';
-  els.tdeeActivityLabel.textContent = '🏃 ' + actInfo.label + ' (×' + activityLevel + ')';
-  els.tdeeNote.textContent = '基于 4 种标准公式平均 BMR × 活动系数 | ' + actInfo.desc;
-
-  // Goal chips rendered above
-
-  // ===== Macro Nutrients =====
-  // Protein based on body weight & activity level (g/kg), fat at 25%, carbs fill rest
-  const proteinRates = { '1.2': 1.2, '1.375': 1.4, '1.55': 1.6, '1.725': 1.8, '1.9': 2.0 };
-  const proteinRate = proteinRates[activityLevel] || 1.6;
-  const proteinG = Math.round(weight * proteinRate);
-  // Fat: 25% of target calories
-  const fatG = Math.round((goalCal * 0.25) / 9);
-  // Carbs: fill remaining calories
-  const carbCal = goalCal - proteinG * 4 - fatG * 9;
-  const carbG = Math.round(Math.max(0, carbCal / 4));
-
-  els.macroProtein.textContent = proteinG;
-  els.macroCarbs.textContent = carbG;
-  els.macroFat.textContent = fatG;
-
-  // Verify macros add up to goal calories
-  const macroCalTotal = proteinG * 4 + carbG * 4 + fatG * 9;
-  const macroVerifyEl = document.getElementById('macroVerify');
-  if (macroVerifyEl) {
-    macroVerifyEl.textContent = `（蛋白 ${proteinG}g × 4 + 碳水 ${carbG}g × 4 + 脂肪 ${fatG}g × 9 = ${macroCalTotal} kcal ≈ 目标 ${goalCal} kcal）`;
-  }
-
-  // ===== BMI =====
-  const heightM = height / 100;
-  const bmi = weight / (heightM * heightM);
-  els.bmiValue.textContent = bmi.toFixed(1);
-
-  let bmiCat, bmiColor;
-  if (bmi < 18.5) { bmiCat = '偏瘦'; bmiColor = '#60a5fa'; }
-  else if (bmi < 25) { bmiCat = '正常范围'; bmiColor = '#34d399'; }
-  else if (bmi < 30) { bmiCat = '超重'; bmiColor = '#fbbf24'; }
-  else { bmiCat = '肥胖'; bmiColor = '#ef4444'; }
-
-  els.bmiCategory.textContent = bmiCat;
-  els.bmiCategory.style.color = bmiColor;
-
-  // BMI indicator position (map 10-40 BMI to 0%-100% on the bar)
-  const bmiPercent = Math.max(0, Math.min(100, ((bmi - 10) / (40 - 10)) * 100));
-  els.bmiIndicator.style.left = bmiPercent + '%';
-
-  // Ideal weight range (BMI 18.5 - 24.9)
-  const idealLow = Math.round(18.5 * heightM * heightM * 10) / 10;
-  const idealHigh = Math.round(24.9 * heightM * heightM * 10) / 10;
-  els.idealWeight.innerHTML = `基于 BMI 18.5-24.9，你的理想体重范围：<strong>${idealLow} – ${idealHigh} kg</strong>`;
-}
-
-// ============ Event Listeners ============
-const inputs = [
-  els.age, els.height, els.weight, els.bodyFat,
-  els.activityLevel, els.goal
-];
-
-inputs.forEach(el => el.addEventListener('input', calculate));
-els.genderMale.addEventListener('change', calculate);
-els.genderFemale.addEventListener('change', calculate);
-
-// Body fat slider sync
-els.bodyFatSlider.addEventListener('input', () => {
-  els.bodyFat.value = els.bodyFatSlider.value;
-  calculate();
-});
-els.bodyFat.addEventListener('input', () => {
-  els.bodyFatSlider.value = els.bodyFat.value;
-  calculate();
-});
-
-// Optional body fat toggle
-els.optToggle.addEventListener('click', () => {
-  els.optContent.classList.toggle('show');
-  els.optToggle.textContent = els.optContent.classList.contains('show')
-    ? '－ 隐藏体脂率'
-    : '＋ 添加体脂率（用于 Katch-McArdle 公式）';
-  calculate();
-});
-
-// ============ Initial Calculation ============
-calculate();
-
-// ============ Exercise Panel Logic ============
-
-// Populate exercise dropdown grouped by category
-function populateExerciseDropdown() {
-  const select = document.getElementById('exSelect');
-  if (!select || select.options.length > 1) return;
-
-  const categories = [...new Set(exercises.map(e => e.category))];
-  categories.forEach(cat => {
-    const optgroup = document.createElement('optgroup');
-    optgroup.label = '━ ' + cat + ' ━';
-    optgroup.className = 'cat-optgroup';
-    exercises.filter(e => e.category === cat).forEach(ex => {
-      const opt = document.createElement('option');
-      opt.value = ex.name;
-      opt.textContent = ex.name + ' (MET ' + ex.met + ')';
-      optgroup.appendChild(opt);
-    });
-    select.appendChild(optgroup);
-  });
-}
-
-// Workout state
-let workoutExercises = [];
-
-function addExercise() {
-  const select = document.getElementById('exSelect');
-  const weightEl = document.getElementById('exWeight');
-  const repsEl = document.getElementById('exReps');
-  const setsEl = document.getElementById('exSets');
-  const restEl = document.getElementById('exRest');
-
-  const exName = select.value;
-  if (!exName) return;
-
-  const ex = exercises.find(e => e.name === exName);
-  const weightKg = parseFloat(weightEl.value) || 0;
-  const reps = parseInt(repsEl.value) || 10;
-  const sets = parseInt(setsEl.value) || 3;
-  const restSec = parseInt(restEl.value) || 90;
-
-  if (weightKg <= 0) { alert('请输入有效重量'); return; }
-
-  workoutExercises.push({ ex, weightKg, reps, sets, restSec });
-  renderWorkout();
-  updateWorkoutTotals();
-}
-
-function removeExercise(index) {
-  workoutExercises.splice(index, 1);
-  renderWorkout();
-  updateWorkoutTotals();
-}
-
-function resetWorkout() {
-  workoutExercises = [];
-  renderWorkout();
-  updateWorkoutTotals();
-}
-
-function renderWorkout() {
-  const list = document.getElementById('workoutList');
-  if (workoutExercises.length === 0) {
-    list.innerHTML = '<div class="workout-empty">从上方选择训练动作开始构建你的训练计划</div>';
-    document.getElementById('workoutSummary').style.display = 'none';
-    return;
-  }
-
-  const bodyWeight = parseFloat(els.weight.value) || 65;
-
-  list.innerHTML = workoutExercises.map((w, i) => {
-    const result = calcExerciseCalories(w.ex, w.weightKg, w.reps, w.sets, w.restSec, bodyWeight);
-    return '<div class="workout-item">' +
-      '<div>' +
-        '<div class="ex-name">' + w.ex.name + '</div>' +
-        '<div class="ex-detail">' + w.weightKg + 'kg × ' + w.reps + '次 × ' + w.sets + '组 | 做功 ' + result.workJoules.toLocaleString() + 'J | 用时约 ' + result.totalTimeMin + '分</div>' +
-      '</div>' +
-      '<div class="ex-cal">🔥 ' + result.total + ' kcal</div>' +
-      '<div style="font-size:0.68rem;color:var(--text-secondary);">做功 ' + result.workKcal + ' + MET ' + result.metKcal + '</div>' +
-      '<button class="ex-del" onclick="removeExercise(' + i + ')" title="移除">×</button>' +
-    '</div>';
-  }).join('');
-
-  document.getElementById('workoutSummary').style.display = 'flex';
-}
-
-function updateWorkoutTotals() {
-  const bodyWeight = parseFloat(els.weight.value) || 65;
-
-  if (workoutExercises.length === 0) {
-    document.getElementById('workoutSummary').style.display = 'none';
-    updateIntegrationNote(0);
-    return;
-  }
-
-  let totalKcal = 0, totalWorkKcal = 0, totalMetKcal = 0, totalJoules = 0, totalTime = 0;
-  workoutExercises.forEach(w => {
-    const r = calcExerciseCalories(w.ex, w.weightKg, w.reps, w.sets, w.restSec, bodyWeight);
-    totalKcal += r.total;
-    totalWorkKcal += r.workKcal;
-    totalMetKcal += r.metKcal;
-    totalJoules += r.workJoules;
-    totalTime += r.totalTimeMin;
-  });
-
-  document.getElementById('workoutSummary').style.display = 'flex';
-  document.getElementById('workoutTotalCal').textContent = Math.round(totalKcal) + ' kcal';
-  document.getElementById('workoutDetail').textContent =
-    '做功消耗 ' + Math.round(totalWorkKcal) + ' kcal + MET消耗 ' + Math.round(totalMetKcal) + ' kcal | 总做功 ' + totalJoules.toLocaleString() + ' 焦耳 | 训练时长约 ' + Math.round(totalTime) + ' 分钟';
-
-  updateIntegrationNote(Math.round(totalKcal));
-}
-
-function updateIntegrationNote(exerciseKcal) {
-  const gender = els.genderMale.checked ? 'male' : 'female';
-  const age = parseFloat(els.age.value) || 30;
-  const height = parseFloat(els.height.value) || 170;
-  const weight = parseFloat(els.weight.value) || 65;
-  const activityMultiplier = parseFloat(els.activityLevel.value);
-  const goal = els.goal.value;
-
-  const bmrM = bmrMifflinStJeor(gender, weight, height, age);
-  const bmrHB = bmrHarrisBenedictRevised(gender, weight, height, age);
-  const bmrWHO = bmrWhoFaoUnu(gender, weight, height, age);
-  const bmrSCH = bmrSchofield(gender, weight, height, age);
-  const avgBMR = Math.round((bmrM + bmrHB + bmrWHO + bmrSCH) / 4);
-
-  const dailyActivityKcal = Math.round(avgBMR * activityMultiplier);
-  const totalWithExercise = dailyActivityKcal + exerciseKcal;
-  const goalAdjust = goalAdjustments[goal] ? goalAdjustments[goal].adjustment : 0;
-  const goalWithExercise = totalWithExercise + goalAdjust;
-
-  const note = document.getElementById('integrationNote');
-  if (note) {
-    note.style.display = exerciseKcal > 0 ? 'block' : 'none';
-    document.getElementById('integrateBmr').textContent = avgBMR.toLocaleString();
-    document.getElementById('integrateActivity').textContent = '×' + activityMultiplier;
-    document.getElementById('integrateEx').textContent = exerciseKcal.toLocaleString();
-    document.getElementById('integrateTotal').textContent = totalWithExercise.toLocaleString();
-
-    const goalLabel = document.getElementById('goalLabel');
-    // removed
-    if (exerciseKcal > 0 && goalLabel && goalCalories) {
-      // removed
-      // removed
-    } else if (goalLabel && goalCalories) {
-      const tdee = Math.round(avgBMR * activityMultiplier);
-      const goalCal = Math.round(tdee + goalAdjust);
-      // removed
-      // removed
-    }
-  }
-}
-
-// Override calculate to refresh workout display when body params change
-const origCalculate = calculate;
-calculate = function() {
-  origCalculate();
-  triggerAutoSave();
-  if (workoutExercises.length > 0) {
-    renderWorkout();
-    updateWorkoutTotals();
-  }
-};
-
-// Event Listeners for Exercise Panel
-document.getElementById('exAddBtn').addEventListener('click', addExercise);
-document.getElementById('exResetBtn').addEventListener('click', resetWorkout);
-['exWeight', 'exReps', 'exSets', 'exRest'].forEach(id => {
-  document.getElementById(id).addEventListener('keydown', (e) => {
-    if (e.key === 'Enter') addExercise();
-  });
-});
-
-// Populate dropdown on load
-populateExerciseDropdown();
-
-</script>
-
-
-<!-- ===== AUTH MODAL ===== -->
+<!-- Auth Modal -->
 <div class="auth-overlay" id="authOverlay">
   <div class="auth-modal" style="position:relative;">
     <button class="auth-close" onclick="hideAuthModal()">×</button>
@@ -1879,5 +1130,1008 @@ populateExerciseDropdown();
 <!-- Toast Container -->
 <div class="toast-container" id="toastContainer"></div>
 
+<!-- ===== MAIN SCRIPTS ===== -->
+<script>
+"use strict";
+
+// ============ Page Navigation ============
+function switchPage(pageId) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById(pageId).classList.add('active');
+  document.getElementById('navPage1').classList.toggle('active', pageId === 'page1');
+  document.getElementById('navPage2').classList.toggle('active', pageId === 'page2');
+}
+
+function switchPage2Tab(tab) {
+  document.getElementById('contentExercise').classList.toggle('active', tab === 'exercise');
+  document.getElementById('contentDiet').classList.toggle('active', tab === 'diet');
+  document.getElementById('tabExercise').classList.toggle('active', tab === 'exercise');
+  document.getElementById('tabDiet').classList.toggle('active', tab === 'diet');
+}
+
+// ============ BMR Formulas ============
+function bmrMifflinStJeor(gender, W, H, A) {
+  return gender === 'male' ? 10*W + 6.25*H - 5*A + 5 : 10*W + 6.25*H - 5*A - 161;
+}
+
+function bmrHarrisBenedictRevised(gender, W, H, A) {
+  return gender === 'male' ? 88.362 + 13.397*W + 4.799*H - 5.677*A : 447.593 + 9.247*W + 3.098*H - 4.330*A;
+}
+
+function bmrWhoFaoUnu(gender, W, H, A) {
+  if (gender === 'male') {
+    if (A < 18) return 17.686*W + 658.2;
+    if (A <= 30) return 15.057*W + 692.2;
+    if (A <= 60) return 11.472*W + 873.1;
+    return 11.711*W + 587.7;
+  } else {
+    if (A < 18) return 13.384*W + 692.6;
+    if (A <= 30) return 14.818*W + 486.6;
+    if (A <= 60) return 8.126*W + 845.6;
+    return 9.082*W + 658.5;
+  }
+}
+
+function bmrKatchMcArdle(W, bodyFatPct) {
+  const LBM = W * (1 - bodyFatPct / 100);
+  return 370 + 21.6 * LBM;
+}
+
+function bmrSchofield(gender, W, H, A) {
+  if (gender === 'male') {
+    if (A < 18) return 17.686*W + 658.2;
+    if (A <= 30) return 15.057*W + 692.2;
+    if (A <= 60) return 11.472*W + 873.1;
+    return 11.711*W + 587.7;
+  } else {
+    if (A < 18) return 13.384*W + 692.6;
+    if (A <= 30) return 14.818*W + 486.6;
+    if (A <= 60) return 8.126*W + 845.6;
+    return 9.082*W + 658.5;
+  }
+}
+
+const activityMultipliers = {
+  '1.2': { label: '久坐不动', desc: '几乎不运动 · 办公室工作' },
+  '1.375': { label: '轻度活动', desc: '每周运动 1-3 天' },
+  '1.55': { label: '中度活动', desc: '每周运动 3-5 天' },
+  '1.725': { label: '高度活动', desc: '每周运动 6-7 天' },
+  '1.9': { label: '极度活跃', desc: '高强度体力劳动 / 每天训练' },
+};
+
+const goalAdjustments = {
+  'maintain': { label: '🎯 保持体重 — 每日目标热量', adjustment: 0 },
+  'mildLoss': { label: '🥗 温和减重 — 每日目标热量 (-250 kcal)', adjustment: -250 },
+  'moderateLoss': { label: '🔥 适度减重 — 每日目标热量 (-500 kcal)', adjustment: -500 },
+  'mildGain': { label: '💪 温和增重 — 每日目标热量 (+250 kcal)', adjustment: 250 },
+  'moderateGain': { label: '🏋️ 适度增重 — 每日目标热量 (+500 kcal)', adjustment: 500 },
+};
+
+// ============ Exercise Database ============
+const exercises = [
+  { name: '杠铃卧推', category: '胸部', rom: 0.50, met: 6.0 },
+  { name: '哑铃卧推', category: '胸部', rom: 0.50, met: 6.0 },
+  { name: '上斜杠铃卧推', category: '胸部', rom: 0.50, met: 6.0 },
+  { name: '上斜哑铃卧推', category: '胸部', rom: 0.50, met: 5.5 },
+  { name: '下斜卧推', category: '胸部', rom: 0.50, met: 6.0 },
+  { name: '哑铃飞鸟', category: '胸部', rom: 0.45, met: 5.0 },
+  { name: '绳索夹胸', category: '胸部', rom: 0.45, met: 5.0 },
+  { name: '蝴蝶机夹胸', category: '胸部', rom: 0.50, met: 5.0 },
+  { name: '双杠臂屈伸', category: '胸部', rom: 0.40, met: 6.5 },
+  { name: '俯卧撑', category: '胸部', rom: 0.35, met: 5.5 },
+  { name: '器械推胸', category: '胸部', rom: 0.45, met: 5.0 },
+  { name: '杠铃划船', category: '背部', rom: 0.60, met: 6.0 },
+  { name: '哑铃单臂划船', category: '背部', rom: 0.60, met: 5.5 },
+  { name: '引体向上', category: '背部', rom: 0.50, met: 7.0 },
+  { name: '高位下拉', category: '背部', rom: 0.50, met: 5.5 },
+  { name: '坐姿绳索划船', category: '背部', rom: 0.50, met: 5.0 },
+  { name: 'T杠划船', category: '背部', rom: 0.60, met: 6.0 },
+  { name: '面拉', category: '背部', rom: 0.50, met: 4.5 },
+  { name: '直臂下压', category: '背部', rom: 0.40, met: 4.5 },
+  { name: '硬拉(传统)', category: '背部', rom: 0.90, met: 8.0 },
+  { name: '杠铃推举', category: '肩部', rom: 0.50, met: 6.0 },
+  { name: '哑铃推举', category: '肩部', rom: 0.50, met: 5.5 },
+  { name: '阿诺德推举', category: '肩部', rom: 0.50, met: 5.5 },
+  { name: '侧平举', category: '肩部', rom: 0.60, met: 4.5 },
+  { name: '前平举', category: '肩部', rom: 0.55, met: 4.5 },
+  { name: '俯身飞鸟', category: '肩部', rom: 0.50, met: 4.5 },
+  { name: '杠铃提拉', category: '肩部', rom: 0.55, met: 5.5 },
+  { name: '杠铃弯举', category: '手臂', rom: 0.40, met: 5.0 },
+  { name: '哑铃弯举', category: '手臂', rom: 0.40, met: 4.5 },
+  { name: '锤式弯举', category: '手臂', rom: 0.40, met: 4.5 },
+  { name: '牧师凳弯举', category: '手臂', rom: 0.35, met: 4.5 },
+  { name: '绳索下压', category: '手臂', rom: 0.35, met: 4.5 },
+  { name: '仰卧臂屈伸', category: '手臂', rom: 0.35, met: 4.5 },
+  { name: '窄距卧推', category: '手臂', rom: 0.45, met: 5.5 },
+  { name: '集中弯举', category: '手臂', rom: 0.40, met: 4.0 },
+  { name: '杠铃深蹲', category: '腿部', rom: 0.80, met: 7.0 },
+  { name: '前蹲', category: '腿部', rom: 0.80, met: 7.0 },
+  { name: '保加利亚分腿蹲', category: '腿部', rom: 0.70, met: 6.5 },
+  { name: '罗马尼亚硬拉', category: '腿部', rom: 0.80, met: 7.0 },
+  { name: '腿举', category: '腿部', rom: 0.50, met: 6.0 },
+  { name: '哈克深蹲', category: '腿部', rom: 0.75, met: 6.5 },
+  { name: '弓步蹲', category: '腿部', rom: 0.70, met: 6.0 },
+  { name: '腿屈伸', category: '腿部', rom: 0.40, met: 5.0 },
+  { name: '腿弯举', category: '腿部', rom: 0.40, met: 5.0 },
+  { name: '臀推', category: '腿部', rom: 0.35, met: 5.5 },
+  { name: '提踵', category: '腿部', rom: 0.15, met: 4.5 },
+  { name: '卷腹', category: '核心', rom: 0.30, met: 4.0 },
+  { name: '悬垂举腿', category: '核心', rom: 0.35, met: 5.0 },
+  { name: '俄罗斯转体', category: '核心', rom: 0.30, met: 4.5 },
+  { name: '平板支撑', category: '核心', rom: 0.00, met: 3.5 },
+  { name: '腹肌轮', category: '核心', rom: 0.40, met: 5.5 },
+  { name: '山羊挺身', category: '核心', rom: 0.40, met: 5.0 },
+  { name: '壶铃摇摆', category: '全身', rom: 0.90, met: 8.0 },
+  { name: '波比跳', category: '全身', rom: 0.50, met: 10.0 },
+  { name: '战绳', category: '全身', rom: 0.80, met: 9.0 },
+  { name: '农夫行走', category: '全身', rom: 0.05, met: 6.0 },
+];
+
+const MUSCLE_EFFICIENCY = 0.22;
+const GRAVITY = 9.8;
+const KCAL_PER_JOULE = 1 / 4184;
+
+function calcExerciseCalories(ex, weightKg, reps, sets, restSec, bodyWeightKg) {
+  const workPerRep = weightKg * GRAVITY * ex.rom;
+  const totalWork = workPerRep * reps * sets;
+  const workKcal = totalWork * KCAL_PER_JOULE / MUSCLE_EFFICIENCY;
+  const activeTimeH = (reps * sets * 2.5) / 3600;
+  const restTimeH = ((sets - 1) * restSec) / 3600;
+  const totalTimeH = activeTimeH + restTimeH;
+  const metKcal = ex.met * bodyWeightKg * Math.max(totalTimeH, activeTimeH * 1.5);
+  return {
+    workKcal: Math.round(workKcal * 10) / 10,
+    metKcal: Math.round(metKcal * 10) / 10,
+    total: Math.round((workKcal + metKcal) * 10) / 10,
+    workJoules: Math.round(totalWork),
+    activeTimeMin: Math.round(activeTimeH * 60 * 10) / 10,
+    totalTimeMin: Math.round(totalTimeH * 60 * 10) / 10,
+  };
+}
+// ============ FOOD DATABASE (350+ items, per 100g) ============
+// Data from: 《中国食物成分表》 National Food Composition Table
+// Format: [name, category, calories(kcal), protein(g), carbs(g), fat(g)]
+const foodDatabase = [
+  // ── 主食类 Staples (~50 items) ──
+  ['白米饭(熟)', '主食', 116, 2.6, 25.6, 0.3],
+  ['白粥', '主食', 46, 1.1, 9.7, 0.2],
+  ['小米粥', '主食', 46, 1.4, 8.4, 0.7],
+  ['糙米饭(熟)', '主食', 112, 2.5, 23.0, 0.9],
+  ['馒头(标准粉)', '主食', 233, 7.8, 44.2, 1.0],
+  ['馒头(富强粉)', '主食', 208, 6.2, 43.2, 1.2],
+  ['花卷', '主食', 217, 6.4, 44.1, 1.0],
+  ['面条(煮)', '主食', 109, 3.8, 21.3, 0.4],
+  ['全麦面包', '主食', 254, 8.5, 46.3, 3.4],
+  ['白面包', '主食', 264, 7.6, 51.5, 3.2],
+  ['燕麦片', '主食', 367, 13.5, 61.6, 6.7],
+  ['小米', '主食', 358, 9.0, 73.5, 3.1],
+  ['大米', '主食', 346, 7.7, 77.2, 0.6],
+  ['糯米', '主食', 350, 7.3, 77.5, 1.0],
+  ['黑米', '主食', 333, 9.4, 68.3, 2.5],
+  ['玉米(鲜)', '主食', 106, 4.0, 19.9, 1.2],
+  ['红薯', '主食', 61, 0.7, 15.3, 0.2],
+  ['土豆', '主食', 76, 2.0, 16.5, 0.2],
+  ['山药', '主食', 56, 1.9, 11.6, 0.2],
+  ['芋头', '主食', 79, 2.2, 17.1, 0.2],
+  ['油条', '主食', 386, 6.9, 50.1, 17.6],
+  ['油饼', '主食', 399, 7.9, 40.4, 22.9],
+  ['烙饼', '主食', 255, 7.5, 51.0, 2.3],
+  ['饺子(猪肉)', '主食', 240, 7.5, 26.0, 11.6],
+  ['馄饨', '主食', 235, 7.2, 27.0, 10.2],
+  ['烧饼', '主食', 326, 8.2, 55.4, 9.2],
+  ['包子(猪肉)', '主食', 226, 7.2, 29.8, 8.8],
+  ['通心粉(干)', '主食', 350, 12.0, 72.0, 1.0],
+  ['方便面', '主食', 472, 9.5, 60.9, 21.1],
+  ['米粉(干)', '主食', 346, 7.8, 78.0, 0.8],
+  ['河粉(鲜)', '主食', 220, 4.0, 50.0, 0.4],
+  ['粉丝', '主食', 335, 0.8, 82.6, 0.2],
+  ['粉条', '主食', 337, 0.5, 83.6, 0.1],
+  ['年糕', '主食', 154, 3.3, 33.9, 0.6],
+  ['粽子', '主食', 195, 4.2, 38.0, 3.5],
+  ['烧卖', '主食', 200, 6.5, 32.0, 4.8],
+  ['春卷', '主食', 330, 6.5, 38.0, 16.5],
+  ['煎饼', '主食', 333, 7.5, 36.0, 14.5],
+  ['油条(无矾)', '主食', 378, 6.8, 49.0, 17.0],
+  ['全麦馒头', '主食', 220, 8.5, 42.0, 1.5],
+  ['玉米面', '主食', 340, 8.1, 69.6, 3.3],
+  ['薏米', '主食', 357, 12.8, 69.1, 3.3],
+  ['绿豆', '主食', 316, 21.6, 55.6, 0.8],
+  ['红豆', '主食', 309, 20.2, 55.7, 0.6],
+  ['黄豆', '主食', 359, 35.0, 18.7, 16.0],
+  ['挂面', '主食', 347, 10.7, 74.7, 0.6],
+  ['莜麦面', '主食', 385, 12.2, 67.8, 7.2],
+  ['麸皮', '主食', 220, 15.8, 30.1, 4.0],
+
+  // ── 肉类 Meat (~45 items) ──
+  ['猪肉(瘦)', '肉类', 143, 20.3, 1.5, 6.2],
+  ['猪肉(肥瘦)', '肉类', 395, 13.2, 2.4, 37.0],
+  ['猪里脊', '肉类', 155, 20.2, 0.7, 7.9],
+  ['猪五花', '肉类', 349, 10.2, 0.1, 33.8],
+  ['猪排骨', '肉类', 278, 16.7, 0.1, 23.1],
+  ['猪蹄', '肉类', 266, 22.6, 0.1, 18.8],
+  ['猪肝', '肉类', 129, 19.3, 5.0, 3.5],
+  ['猪心', '肉类', 119, 16.6, 1.1, 5.3],
+  ['猪肚', '肉类', 110, 15.2, 0.7, 5.1],
+  ['猪大肠', '肉类', 191, 6.9, 0.1, 18.0],
+  ['猪血', '肉类', 55, 12.2, 0.9, 0.3],
+  ['牛肉(瘦)', '肉类', 106, 20.2, 1.2, 2.3],
+  ['牛里脊', '肉类', 107, 22.2, 0.7, 2.0],
+  ['牛腩', '肉类', 332, 17.0, 0.1, 28.5],
+  ['牛肚', '肉类', 72, 14.5, 0.1, 1.6],
+  ['羊肉(瘦)', '肉类', 118, 20.5, 0.2, 3.9],
+  ['羊肉(肥瘦)', '肉类', 198, 19.0, 0.1, 13.5],
+  ['羊肝', '肉类', 134, 17.9, 4.0, 6.1],
+  ['驴肉(瘦)', '肉类', 116, 21.5, 0.4, 3.2],
+  ['兔肉', '肉类', 102, 19.7, 0.9, 2.2],
+  ['鸡肉', '肉类', 111, 20.3, 1.3, 2.5],
+  ['鸡胸肉', '肉类', 133, 19.4, 2.5, 5.0],
+  ['鸡腿', '肉类', 181, 16.0, 0.1, 13.0],
+  ['鸡翅', '肉类', 194, 17.4, 1.3, 11.8],
+  ['鸡爪', '肉类', 254, 16.1, 2.7, 18.5],
+  ['鸡肝', '肉类', 121, 16.6, 2.8, 4.8],
+  ['鸡胗', '肉类', 118, 19.2, 0.6, 4.0],
+  ['鸭肉', '肉类', 240, 15.5, 0.1, 19.7],
+  ['北京烤鸭', '肉类', 436, 10.8, 6.0, 38.4],
+  ['腊肉', '肉类', 181, 18.0, 2.3, 11.3],
+  ['香肠', '肉类', 508, 24.1, 11.2, 40.7],
+  ['腊肠', '肉类', 584, 21.5, 8.8, 48.3],
+  ['火腿肠', '肉类', 212, 14.0, 15.6, 10.4],
+  ['午餐肉', '肉类', 229, 9.4, 12.0, 15.9],
+  ['猪肉松', '肉类', 396, 23.4, 49.7, 11.4],
+  ['牛肉干', '肉类', 550, 45.6, 1.9, 40.0],
+  ['叉烧肉', '肉类', 279, 22.0, 13.8, 14.0],
+  ['酱牛肉', '肉类', 246, 31.4, 3.2, 11.9],
+  ['培根', '肉类', 541, 12.0, 1.2, 55.0],
+  ['肉丸(猪肉)', '肉类', 180, 12.0, 10.0, 10.5],
+  ['红烧肉', '肉类', 349, 8.0, 1.5, 35.0],
+  ['糖醋排骨', '肉类', 295, 15.0, 15.0, 18.0],
+  ['宫保鸡丁', '肉类', 215, 18.0, 10.0, 12.0],
+  ['烤鸡', '肉类', 210, 25.0, 0.5, 12.0],
+  ['炸鸡腿', '肉类', 290, 20.0, 10.0, 18.0],
+
+  // ── 蛋类 Eggs (~10 items) ──
+  ['鸡蛋(整)', '蛋类', 144, 13.3, 1.5, 8.8],
+  ['鸡蛋白', '蛋类', 60, 11.6, 3.1, 0.1],
+  ['鸡蛋黄', '蛋类', 328, 15.2, 3.4, 28.2],
+  ['鸭蛋', '蛋类', 180, 12.6, 3.1, 13.0],
+  ['鹌鹑蛋', '蛋类', 160, 12.8, 2.0, 11.1],
+  ['咸鸭蛋', '蛋类', 190, 12.7, 6.3, 12.7],
+  ['松花蛋(鸭)', '蛋类', 171, 14.2, 1.6, 10.7],
+  ['鹅蛋', '蛋类', 196, 13.9, 1.0, 15.6],
+  ['煎鸡蛋', '蛋类', 196, 13.0, 0.5, 15.0],
+  ['蒸蛋羹', '蛋类', 85, 6.0, 4.0, 5.0],
+
+  // ── 水产 Seafood (~35 items) ──
+  ['草鱼', '水产', 112, 16.6, 0.1, 5.2],
+  ['鲤鱼', '水产', 109, 17.6, 0.5, 4.1],
+  ['鲫鱼', '水产', 108, 17.1, 2.8, 2.7],
+  ['带鱼', '水产', 127, 17.7, 0.1, 4.9],
+  ['黄鱼', '水产', 96, 17.7, 0.8, 2.5],
+  ['鲈鱼', '水产', 100, 18.6, 0.1, 3.4],
+  ['三文鱼', '水产', 139, 17.2, 0.1, 7.8],
+  ['鳕鱼', '水产', 88, 20.4, 0.5, 0.5],
+  ['金枪鱼', '水产', 108, 23.5, 0.1, 1.5],
+  ['泥鳅', '水产', 96, 18.0, 1.7, 2.0],
+  ['黄鳝', '水产', 89, 18.0, 0.1, 1.4],
+  ['牡蛎', '水产', 73, 5.3, 8.2, 2.1],
+  ['蛤蜊', '水产', 56, 7.6, 2.2, 1.2],
+  ['扇贝', '水产', 60, 11.1, 2.6, 0.6],
+  ['鱿鱼', '水产', 75, 17.4, 0.1, 0.8],
+  ['海虾', '水产', 79, 16.8, 1.5, 0.6],
+  ['河虾', '水产', 84, 16.4, 0.1, 2.4],
+  ['对虾', '水产', 93, 18.6, 2.8, 0.8],
+  ['基围虾', '水产', 101, 18.2, 3.9, 1.4],
+  ['螃蟹', '水产', 95, 13.8, 2.3, 2.6],
+  ['甲鱼', '水产', 105, 17.8, 0.1, 4.0],
+  ['鲍鱼', '水产', 84, 14.0, 6.0, 0.8],
+  ['田螺', '水产', 60, 11.0, 3.6, 0.5],
+  ['海参(水浸)', '水产', 24, 6.0, 0.1, 0.1],
+  ['海蜇皮', '水产', 33, 5.5, 2.2, 0.3],
+  ['虾皮', '水产', 153, 30.7, 2.2, 2.2],
+  ['干贝', '水产', 264, 55.6, 5.1, 2.4],
+  ['鱼子酱', '水产', 252, 24.0, 0.1, 17.9],
+  ['沙丁鱼', '水产', 208, 19.8, 0.1, 14.1],
+  ['秋刀鱼', '水产', 310, 18.0, 0.1, 26.0],
+  ['鳗鱼', '水产', 282, 18.5, 0.1, 23.0],
+  ['虾仁', '水产', 48, 10.5, 0.1, 0.7],
+  ['鱼丸', '水产', 120, 12.0, 12.0, 3.0],
+
+  // ── 蔬菜 Vegetables (~55 items) ──
+  ['冬瓜', '蔬菜', 10, 0.4, 1.9, 0.2],
+  ['生菜', '蔬菜', 13, 1.3, 1.3, 0.3],
+  ['黄瓜', '蔬菜', 15, 0.8, 2.4, 0.2],
+  ['大白菜', '蔬菜', 15, 1.5, 2.4, 0.1],
+  ['小白菜', '蔬菜', 14, 1.5, 1.6, 0.3],
+  ['番茄', '蔬菜', 15, 0.9, 3.5, 0.2],
+  ['菠菜', '蔬菜', 24, 2.6, 2.8, 0.4],
+  ['白萝卜', '蔬菜', 16, 0.6, 3.5, 0.1],
+  ['绿豆芽', '蔬菜', 16, 2.1, 2.1, 0.1],
+  ['西兰花', '蔬菜', 33, 4.1, 4.3, 0.6],
+  ['菜花', '蔬菜', 24, 2.1, 3.4, 0.2],
+  ['西葫芦', '蔬菜', 18, 0.8, 3.2, 0.2],
+  ['芹菜', '蔬菜', 20, 1.2, 3.3, 0.2],
+  ['苦瓜', '蔬菜', 19, 1.0, 3.5, 0.1],
+  ['空心菜', '蔬菜', 20, 2.2, 2.2, 0.3],
+  ['茄子', '蔬菜', 21, 1.1, 3.6, 0.2],
+  ['丝瓜', '蔬菜', 20, 1.0, 3.6, 0.2],
+  ['茼蒿', '蔬菜', 21, 1.9, 2.7, 0.3],
+  ['圆白菜', '蔬菜', 22, 1.5, 3.6, 0.2],
+  ['南瓜', '蔬菜', 22, 0.7, 4.5, 0.1],
+  ['柿子椒', '蔬菜', 22, 1.0, 4.0, 0.2],
+  ['香菜', '蔬菜', 31, 2.2, 5.0, 0.4],
+  ['胡萝卜', '蔬菜', 37, 1.0, 7.7, 0.2],
+  ['白萝卜', '蔬菜', 21, 0.9, 4.0, 0.1],
+  ['洋葱', '蔬菜', 39, 1.1, 8.1, 0.2],
+  ['蒜苗', '蔬菜', 37, 2.1, 6.2, 0.4],
+  ['毛豆', '蔬菜', 131, 13.1, 6.5, 5.0],
+  ['豌豆', '蔬菜', 105, 7.4, 14.5, 0.3],
+  ['黄豆芽', '蔬菜', 44, 4.5, 3.0, 1.6],
+  ['藕', '蔬菜', 70, 1.9, 15.2, 0.2],
+  ['四季豆', '蔬菜', 24, 2.0, 4.2, 0.2],
+  ['扁豆', '蔬菜', 37, 2.7, 6.1, 0.2],
+  ['蘑菇(鲜)', '蔬菜', 24, 2.7, 2.0, 0.3],
+  ['金针菇', '蔬菜', 32, 2.4, 3.3, 0.4],
+  ['香菇', '蔬菜', 26, 2.2, 1.9, 0.3],
+  ['杏鲍菇', '蔬菜', 35, 2.0, 5.0, 0.3],
+  ['黑木耳(干)', '蔬菜', 205, 12.1, 35.7, 1.5],
+  ['海带', '蔬菜', 12, 1.2, 1.6, 0.1],
+  ['紫菜', '蔬菜', 207, 26.7, 22.5, 1.1],
+  ['竹笋', '蔬菜', 19, 2.2, 2.5, 0.2],
+  ['芦笋', '蔬菜', 18, 1.8, 3.0, 0.1],
+  ['油菜', '蔬菜', 23, 1.8, 2.7, 0.5],
+  ['韭菜', '蔬菜', 26, 2.4, 3.2, 0.4],
+  ['青椒', '蔬菜', 22, 1.0, 4.0, 0.2],
+  ['豆角', '蔬菜', 31, 2.5, 4.6, 0.2],
+  ['红薯叶', '蔬菜', 35, 3.0, 4.5, 0.8],
+  ['秋葵', '蔬菜', 32, 2.0, 4.0, 0.3],
+  ['魔芋', '蔬菜', 5, 0.1, 0.9, 0.01],
+
+  // ── 水果 Fruits (~40 items) ──
+  ['苹果', '水果', 53, 0.2, 13.5, 0.2],
+  ['梨', '水果', 51, 0.4, 13.1, 0.1],
+  ['香蕉', '水果', 93, 1.4, 20.8, 0.2],
+  ['橙子', '水果', 48, 0.8, 10.5, 0.2],
+  ['橘子', '水果', 42, 0.8, 10.2, 0.2],
+  ['柚子', '水果', 41, 0.8, 9.6, 0.2],
+  ['葡萄', '水果', 45, 0.5, 10.3, 0.2],
+  ['草莓', '水果', 30, 1.0, 6.0, 0.6],
+  ['西瓜', '水果', 31, 0.5, 6.8, 0.1],
+  ['芒果', '水果', 32, 0.6, 7.0, 0.5],
+  ['猕猴桃', '水果', 61, 0.8, 14.5, 0.6],
+  ['桃子', '水果', 42, 0.9, 10.1, 0.1],
+  ['樱桃', '水果', 46, 1.1, 9.9, 0.2],
+  ['菠萝', '水果', 44, 0.5, 10.8, 0.1],
+  ['荔枝', '水果', 71, 0.9, 16.1, 0.2],
+  ['龙眼', '水果', 71, 1.2, 16.2, 0.1],
+  ['火龙果', '水果', 55, 1.1, 11.3, 0.4],
+  ['柿子', '水果', 74, 0.7, 17.1, 0.1],
+  ['哈密瓜', '水果', 34, 0.5, 7.7, 0.1],
+  ['木瓜', '水果', 29, 0.4, 6.2, 0.1],
+  ['柠檬', '水果', 35, 1.1, 6.2, 0.3],
+  ['杨梅', '水果', 28, 0.8, 6.7, 0.2],
+  ['石榴', '水果', 72, 1.3, 14.2, 0.3],
+  ['山竹', '水果', 72, 0.4, 17.5, 0.4],
+  ['牛油果', '水果', 171, 2.0, 7.4, 14.7],
+  ['榴莲', '水果', 155, 1.5, 28.3, 3.3],
+  ['鲜枣', '水果', 122, 1.1, 28.6, 0.3],
+  ['葡萄干', '水果', 341, 2.5, 81.8, 0.4],
+  ['干枣', '水果', 276, 3.2, 62.0, 0.8],
+  ['柿饼', '水果', 250, 1.8, 60.2, 0.2],
+  ['蓝莓', '水果', 57, 0.7, 14.5, 0.3],
+  ['李子', '水果', 36, 0.6, 8.8, 0.2],
+  ['杏', '水果', 36, 1.0, 8.8, 0.1],
+  ['枇杷', '水果', 39, 0.8, 8.5, 0.2],
+  ['椰子肉', '水果', 354, 3.3, 15.2, 33.5],
+  ['百香果', '水果', 32, 1.2, 5.7, 0.6],
+  ['桑葚', '水果', 43, 1.7, 9.7, 0.4],
+
+  // ── 奶制品 Dairy (~20 items) ──
+  ['全脂牛奶', '奶制品', 54, 3.0, 3.4, 3.2],
+  ['脱脂牛奶', '奶制品', 34, 3.4, 4.9, 0.1],
+  ['酸奶(原味)', '奶制品', 72, 2.5, 9.3, 2.7],
+  ['酸奶(脱脂)', '奶制品', 57, 3.3, 10.0, 0.4],
+  ['奶酪', '奶制品', 328, 25.0, 1.6, 26.0],
+  ['全脂奶粉', '奶制品', 478, 20.0, 51.7, 21.2],
+  ['炼乳(甜)', '奶制品', 332, 8.2, 55.4, 9.2],
+  ['奶油', '奶制品', 720, 2.5, 2.7, 78.0],
+  ['黄油', '奶制品', 892, 0.5, 0.6, 98.8],
+  ['冰淇淋', '奶制品', 126, 2.4, 16.5, 5.5],
+  ['豆浆', '奶制品', 13, 1.8, 0.1, 0.7],
+  ['豆奶', '奶制品', 55, 2.5, 6.0, 2.0],
+  ['羊奶', '奶制品', 59, 3.1, 4.4, 3.5],
+
+  // ── 豆制品 Soy (~15 items) ──
+  ['豆腐', '豆制品', 81, 8.1, 3.8, 3.7],
+  ['嫩豆腐', '豆制品', 51, 5.0, 2.4, 2.5],
+  ['豆腐干', '豆制品', 140, 16.2, 10.7, 3.6],
+  ['腐竹', '豆制品', 459, 44.6, 21.3, 21.7],
+  ['豆腐皮', '豆制品', 409, 44.6, 18.6, 17.4],
+  ['素鸡', '豆制品', 192, 16.5, 6.2, 11.5],
+  ['豆腐脑', '豆制品', 47, 3.0, 6.5, 1.2],
+  ['千张', '豆制品', 260, 24.5, 10.5, 14.0],
+  ['油豆腐', '豆制品', 244, 17.0, 4.3, 17.6],
+  ['毛豆腐', '豆制品', 130, 9.8, 5.8, 7.5],
+  ['臭豆腐', '豆制品', 130, 9.8, 5.8, 7.5],
+
+  // ── 坚果种子 Nuts/Seeds (~15 items) ──
+  ['核桃', '坚果', 646, 14.9, 9.6, 65.2],
+  ['杏仁', '坚果', 578, 21.2, 19.7, 49.9],
+  ['花生(炒)', '坚果', 589, 24.8, 16.1, 47.5],
+  ['腰果', '坚果', 615, 18.2, 30.2, 43.9],
+  ['葵花籽', '坚果', 625, 22.8, 12.5, 52.8],
+  ['开心果', '坚果', 631, 20.2, 18.0, 53.0],
+  ['榛子', '坚果', 561, 14.9, 16.7, 54.2],
+  ['黑芝麻', '坚果', 531, 19.1, 24.0, 46.1],
+  ['松子', '坚果', 665, 13.7, 13.1, 68.4],
+  ['栗子(鲜)', '坚果', 185, 4.2, 40.5, 0.7],
+  ['白果', '坚果', 355, 13.2, 72.6, 1.3],
+
+  // ── 零食糕点 Snacks/Desserts (~30 items) ──
+  ['巧克力', '零食', 586, 4.3, 53.4, 40.1],
+  ['薯片', '零食', 536, 5.7, 49.7, 36.8],
+  ['饼干', '零食', 433, 6.5, 69.0, 14.0],
+  ['曲奇饼', '零食', 546, 6.5, 58.9, 31.6],
+  ['苏打饼干', '零食', 408, 8.4, 73.0, 7.7],
+  ['蛋糕(奶油)', '零食', 378, 5.7, 38.0, 24.0],
+  ['蛋黄酥', '零食', 386, 8.5, 42.5, 20.5],
+  ['绿豆糕', '零食', 349, 5.2, 62.0, 10.0],
+  ['麻花', '零食', 524, 8.4, 56.2, 30.1],
+  ['桃酥', '零食', 481, 6.7, 64.3, 21.5],
+  ['月饼(豆沙)', '零食', 405, 5.7, 62.5, 13.6],
+  ['驴打滚', '零食', 194, 4.2, 38.5, 3.0],
+  ['果冻', '零食', 62, 0.1, 15.0, 0.1],
+  ['红豆沙', '零食', 94, 4.5, 18.5, 0.2],
+  ['豆腐花(甜)', '零食', 55, 2.5, 10.0, 0.5],
+  ['凉粉', '零食', 37, 0.2, 8.3, 0.2],
+  ['米花糖', '零食', 405, 4.5, 52.0, 19.0],
+  ['蛋挞', '零食', 310, 5.5, 28.0, 19.5],
+  ['爆米花', '零食', 387, 7.0, 62.0, 12.0],
+  ['沙琪玛', '零食', 505, 6.8, 53.0, 29.0],
+  ['牛肉干', '零食', 550, 45.6, 1.9, 40.0],
+
+  // ── 饮料 Beverages (~25 items) ──
+  ['可乐', '饮料', 42, 0.1, 10.6, 0.1],
+  ['雪碧', '饮料', 44, 0.1, 11.0, 0.1],
+  ['橙汁', '饮料', 45, 0.7, 10.4, 0.1],
+  ['苹果汁', '饮料', 46, 0.1, 11.1, 0.1],
+  ['椰子水', '饮料', 19, 0.1, 4.2, 0.1],
+  ['运动饮料', '饮料', 26, 0.1, 6.4, 0.1],
+  ['蜂蜜柚子茶', '饮料', 48, 0.1, 11.5, 0.1],
+  ['珍珠奶茶', '饮料', 82, 0.8, 16.0, 2.0],
+  ['拿铁咖啡', '饮料', 56, 3.0, 5.0, 2.8],
+  ['美式咖啡', '饮料', 2, 0.1, 0.1, 0.1],
+  ['豆浆(甜)', '饮料', 30, 1.8, 4.0, 1.0],
+  ['啤酒', '饮料', 43, 0.5, 3.5, 0.1],
+  ['红酒', '饮料', 85, 0.1, 2.6, 0.1],
+  ['白酒(高度)', '饮料', 250, 0.1, 0.1, 0.1],
+  ['米酒', '饮料', 55, 1.5, 8.0, 0.1],
+
+  // ── 快餐外卖 Fast Food (~20 items) ──
+  ['汉堡(牛肉)', '快餐', 295, 16.0, 31.0, 12.0],
+  ['汉堡(鸡肉)', '快餐', 265, 14.0, 33.0, 9.0],
+  ['薯条', '快餐', 312, 4.3, 41.0, 14.7],
+  ['披萨(厚底)', '快餐', 266, 11.0, 33.0, 10.0],
+  ['炸鸡块', '快餐', 260, 16.0, 15.0, 16.0],
+  ['热狗', '快餐', 290, 10.0, 25.0, 17.0],
+  ['三明治(火腿)', '快餐', 250, 12.0, 28.0, 10.0],
+  ['寿司(三文鱼)', '快餐', 140, 7.0, 24.0, 2.0],
+  ['意大利面(肉酱)', '快餐', 160, 7.0, 24.0, 4.0],
+  ['炒饭(蛋)', '快餐', 180, 6.0, 28.0, 5.0],
+  ['炒面', '快餐', 160, 5.0, 26.0, 4.5],
+  ['麻辣烫', '快餐', 85, 5.0, 5.0, 5.0],
+  ['黄焖鸡', '快餐', 180, 15.0, 10.0, 10.0],
+  ['兰州拉面', '快餐', 120, 5.0, 20.0, 2.0],
+  ['沙县小吃(蒸饺)', '快餐', 160, 6.0, 24.0, 5.0],
+
+  // ── 调味品 Condiments (~15 items) ──
+  ['菜籽油', '调味品', 899, 0.1, 0.1, 99.9],
+  ['花生油', '调味品', 899, 0.1, 0.1, 99.9],
+  ['橄榄油', '调味品', 899, 0.1, 0.1, 99.9],
+  ['香油', '调味品', 898, 0.1, 0.1, 99.7],
+  ['猪油(炼)', '调味品', 897, 0.1, 0.1, 99.6],
+  ['白砂糖', '调味品', 397, 0.1, 99.9, 0.1],
+  ['红糖', '调味品', 389, 0.7, 96.6, 0.1],
+  ['蜂蜜', '调味品', 321, 0.4, 80.3, 0.1],
+  ['酱油', '调味品', 77, 8.3, 6.4, 0.2],
+  ['醋', '调味品', 30, 0.4, 5.5, 0.1],
+  ['番茄酱', '调味品', 84, 1.7, 18.5, 0.2],
+  ['辣椒油', '调味品', 450, 0.1, 5.0, 48.0],
+  ['芝麻酱', '调味品', 630, 19.2, 16.8, 52.7],
+  ['沙拉酱', '调味品', 680, 0.8, 2.5, 74.0],
+  ['蚝油', '调味品', 50, 2.0, 10.0, 0.3],
+];
+
+// Build search index
+const foodIndex = {};
+foodDatabase.forEach(function(f) {
+  const name = f[0];
+  // Index by first char, pinyin initials, and full name
+  for (let i = 0; i < name.length; i++) {
+    const key = name.substring(i).toLowerCase();
+    if (!foodIndex[key]) foodIndex[key] = [];
+    foodIndex[key].push(f);
+  }
+  // Also index by full name
+  if (!foodIndex[name]) foodIndex[name] = [];
+  foodIndex[name].push(f);
+});
+// ============ Food Search ============
+let selectedFood = null;
+let activeMeal = 'breakfast'; // current target meal for food search
+
+function searchFood() {
+  const query = document.getElementById('foodSearch').value.trim().toLowerCase();
+  const resultsDiv = document.getElementById('foodSearchResults');
+
+  if (!query || query.length < 1) {
+    resultsDiv.innerHTML = '';
+    resultsDiv.classList.remove('show');
+    return;
+  }
+
+  // Search by substring match in name
+  const results = [];
+  const seen = {};
+  foodDatabase.forEach(function(f) {
+    const name = f[0];
+    if (seen[name]) return;
+    if (name.includes(query) || name.toLowerCase().includes(query)) {
+      results.push(f);
+      seen[name] = true;
+    }
+  });
+
+  // Also search by category
+  foodDatabase.forEach(function(f) {
+    const name = f[0];
+    if (seen[name]) return;
+    if (f[1].includes(query)) {
+      results.push(f);
+      seen[name] = true;
+    }
+  });
+
+  if (results.length === 0) {
+    resultsDiv.innerHTML = '<div style="padding:12px;font-size:0.85rem;color:var(--text-secondary);text-align:center;">未找到匹配食物</div>';
+    resultsDiv.classList.add('show');
+    return;
+  }
+
+  resultsDiv.innerHTML = results.slice(0, 30).map(function(f) {
+    return '<div class="food-result-item" onclick="selectFood(\'' + f[0] + '\', ' + f[2] + ', ' + f[3] + ', ' + f[4] + ', ' + f[5] + ')">'
+      + '<div><div class="food-name">' + f[0] + '</div><div class="food-info">' + f[1] + ' · 蛋白质 ' + f[3] + 'g · 碳水 ' + f[4] + 'g · 脂肪 ' + f[5] + 'g</div></div>'
+      + '<div class="food-cal">' + f[2] + ' kcal</div>'
+      + '</div>';
+  }).join('');
+  resultsDiv.classList.add('show');
+}
+
+function selectFood(name, cal, protein, carbs, fat) {
+  selectedFood = { name: name, cal: cal, protein: protein, carbs: carbs, fat: fat };
+  document.getElementById('foodSearch').value = name;
+  document.getElementById('foodSearch').dataset.selected = 'true';
+  document.getElementById('foodSearchResults').classList.remove('show');
+  // Focus the grams input for the active meal
+  var gramsInput = document.getElementById('grams_' + activeMeal);
+  if (gramsInput) gramsInput.focus();
+}
+
+// Hide search results when clicking outside
+document.addEventListener('click', function(e) {
+  if (!e.target.closest('.food-search-box')) {
+    document.getElementById('foodSearchResults').classList.remove('show');
+  }
+});
+
+// ============ Meal Tracking ============
+const mealLog = {
+  breakfast: [],
+  lunch: [],
+  dinner: [],
+  snacks: []
+};
+
+function toggleMeal(meal) {
+  // Just set active meal for the search
+  activeMeal = meal;
+  document.getElementById('foodSearch').focus();
+}
+
+function addFoodToMeal(meal) {
+  if (!selectedFood) {
+    showToast('请先在搜索框中搜索并选择食物', 'info');
+    return;
+  }
+  var gramsInput = document.getElementById('grams_' + meal);
+  var grams = parseFloat(gramsInput.value) || 100;
+  if (grams <= 0) grams = 100;
+
+  var ratio = grams / 100;
+  var item = {
+    name: selectedFood.name,
+    grams: grams,
+    cal: Math.round(selectedFood.cal * ratio),
+    protein: Math.round(selectedFood.protein * ratio * 10) / 10,
+    carbs: Math.round(selectedFood.carbs * ratio * 10) / 10,
+    fat: Math.round(selectedFood.fat * ratio * 10) / 10
+  };
+
+  mealLog[meal].push(item);
+  renderMeal(meal);
+  updateDailySummary();
+  gramsInput.value = '100';
+
+  // Clear selection
+  selectedFood = null;
+  document.getElementById('foodSearch').value = '';
+  document.getElementById('foodSearch').dataset.selected = 'false';
+}
+
+function removeFoodFromMeal(meal, index) {
+  mealLog[meal].splice(index, 1);
+  renderMeal(meal);
+  updateDailySummary();
+}
+
+function renderMeal(meal) {
+  var itemsDiv = document.getElementById(meal + 'Items');
+  var totalEl = document.getElementById(meal + 'Total');
+  var items = mealLog[meal];
+
+  if (items.length === 0) {
+    var labels = { breakfast: '早餐', lunch: '午餐', dinner: '晚餐', snacks: '加餐' };
+    itemsDiv.innerHTML = '<div style="font-size:0.78rem;color:var(--text-secondary);padding:8px 6px;">点击上方搜索食物，添加到' + labels[meal] + '</div>';
+    totalEl.textContent = '0 kcal';
+    return;
+  }
+
+  itemsDiv.innerHTML = items.map(function(item, i) {
+    return '<div class="meal-item-row">'
+      + '<div class="mi-name">' + item.name + '</div>'
+      + '<div class="mi-grams">' + item.grams + 'g</div>'
+      + '<div class="mi-cal">' + item.cal + ' kcal</div>'
+      + '<div class="mi-del" onclick="removeFoodFromMeal(\'' + meal + '\', ' + i + ')">×</div>'
+      + '</div>';
+  }).join('');
+
+  // Add quick-add row
+  itemsDiv.innerHTML += '<div class="meal-add-row">'
+    + '<input type="number" id="grams_' + meal + '" value="100" min="10" max="2000" step="10" placeholder="克数" onkeydown="if(event.key===\'Enter\')addFoodToMeal(\'' + meal + '\')">'
+    + '<button onclick="addFoodToMeal(\'' + meal + '\')">＋ 添加</button>'
+    + '</div>';
+
+  // Calculate total for this meal
+  var totalCal = items.reduce(function(sum, item) { return sum + item.cal; }, 0);
+  totalEl.textContent = totalCal + ' kcal';
+}
+
+function updateDailySummary() {
+  var allItems = mealLog.breakfast.concat(mealLog.lunch, mealLog.dinner, mealLog.snacks);
+  var totalCal = allItems.reduce(function(s, i) { return s + i.cal; }, 0);
+  var totalProtein = allItems.reduce(function(s, i) { return s + i.protein; }, 0);
+  var totalCarbs = allItems.reduce(function(s, i) { return s + i.carbs; }, 0);
+  var totalFat = allItems.reduce(function(s, i) { return s + i.fat; }, 0);
+
+  document.getElementById('dailyCalTotal').textContent = totalCal;
+  document.getElementById('dailyProtein').textContent = Math.round(totalProtein * 10) / 10;
+  document.getElementById('dailyCarbs').textContent = Math.round(totalCarbs * 10) / 10;
+  document.getElementById('dailyFat').textContent = Math.round(totalFat * 10) / 10;
+}
+
+function clearMeals() {
+  if (!confirm('确定要清空今日所有饮食记录吗？')) return;
+  mealLog.breakfast = [];
+  mealLog.lunch = [];
+  mealLog.dinner = [];
+  mealLog.snacks = [];
+  renderMeal('breakfast');
+  renderMeal('lunch');
+  renderMeal('dinner');
+  renderMeal('snacks');
+  updateDailySummary();
+}
+
+// ============ Main Calculate ============
+function calculate() {
+  const gender = document.getElementById('gender-male').checked ? 'male' : 'female';
+  const age = parseFloat(document.getElementById('age').value) || 30;
+  const height = parseFloat(document.getElementById('height').value) || 170;
+  const weight = parseFloat(document.getElementById('weight').value) || 65;
+  const bodyFat = parseFloat(document.getElementById('bodyFat').value) || 20;
+  const activityLevel = document.getElementById('activityLevel').value;
+  const goal = document.getElementById('goal').value;
+
+  // TDEE
+  const bmrM = Math.round(bmrMifflinStJeor(gender, weight, height, age));
+  const actInfo = activityMultipliers[activityLevel];
+  const tdee = Math.round(bmrM * parseFloat(activityLevel));
+  const goalInfo = goalAdjustments[goal];
+  const goalCal = Math.round(tdee + goalInfo.adjustment);
+
+  // BMR display
+  document.getElementById('tdeeBmrValue').textContent = bmrM.toLocaleString() + ' kcal';
+  document.getElementById('tdeeBmrSource').innerHTML = 'Mifflin-St Jeor (1990)<br>AND 推荐 · 最准确';
+
+  // Goal quick cards
+  const goalChips = [
+    { key: 'moderateLoss', label: '🔥 减重', sub: '-500' },
+    { key: 'mildLoss', label: '🥗 温和减', sub: '-250' },
+    { key: 'maintain', label: '⚖️ 保持', sub: '±0' },
+    { key: 'mildGain', label: '💪 温和增', sub: '+250' },
+    { key: 'moderateGain', label: '🏋️ 增肌', sub: '+500' },
+  ];
+  const curGoal = document.getElementById('goal').value;
+  const container = document.getElementById('goalQuickCards');
+  if (container) {
+    container.innerHTML = goalChips.map(function(g) {
+      const cal = Math.round(tdee + goalAdjustments[g.key].adjustment);
+      const act = g.key === curGoal;
+      return '<div class="goal-chip"'
+        + ' onclick="document.getElementById(\'goal\').value=\'' + g.key + '\';calculate();"'
+        + ' style="flex:1;min-width:80px;padding:10px 6px;border-radius:10px;text-align:center;cursor:pointer;transition:all .2s;'
+        + 'background:' + (act ? 'rgba(255,255,255,.25)' : 'rgba(255,255,255,.08)') + ';'
+        + 'border:1.5px solid ' + (act ? 'rgba(255,255,255,.5)' : 'rgba(255,255,255,.12)') + ';'
+        + 'color:#fff;">'
+        + '<div style="font-size:.68rem;opacity:.85;">' + g.label + '</div>'
+        + '<div style="font-size:1.15rem;font-weight:800;">' + cal.toLocaleString() + '</div>'
+        + '<div style="font-size:.6rem;opacity:.6;">' + g.sub + ' kcal</div>'
+        + '</div>';
+    }).join('');
+  }
+
+  // TDEE
+  document.getElementById('tdeeValue').textContent = tdee.toLocaleString() + ' kcal';
+  document.getElementById('tdeeActivityLabel').textContent = '🏃 ' + actInfo.label + ' (×' + activityLevel + ')';
+  document.getElementById('tdeeNote').textContent = '基于 Mifflin-St Jeor 公式 BMR × 活动系数 | ' + actInfo.desc;
+
+  // Macro Nutrients
+  const proteinRates = { '1.2': 1.2, '1.375': 1.4, '1.55': 1.6, '1.725': 1.8, '1.9': 2.0 };
+  const proteinRate = proteinRates[activityLevel] || 1.6;
+  const proteinG = Math.round(weight * proteinRate);
+  const fatG = Math.round((goalCal * 0.25) / 9);
+  const carbCal = goalCal - proteinG * 4 - fatG * 9;
+  const carbG = Math.round(Math.max(0, carbCal / 4));
+
+  document.getElementById('macroProtein').textContent = proteinG;
+  document.getElementById('macroCarbs').textContent = carbG;
+  document.getElementById('macroFat').textContent = fatG;
+
+  const macroCalTotal = proteinG * 4 + carbG * 4 + fatG * 9;
+  const macroVerifyEl = document.getElementById('macroVerify');
+  if (macroVerifyEl) {
+    macroVerifyEl.textContent = '（蛋白 ' + proteinG + 'g × 4 + 碳水 ' + carbG + 'g × 4 + 脂肪 ' + fatG + 'g × 9 = ' + macroCalTotal + ' kcal ≈ 目标 ' + goalCal + ' kcal）';
+  }
+
+  // BMI
+  const heightM = height / 100;
+  const bmi = weight / (heightM * heightM);
+  document.getElementById('bmiValue').textContent = bmi.toFixed(1);
+
+  let bmiCat, bmiColor;
+  if (bmi < 18.5) { bmiCat = '偏瘦'; bmiColor = '#60a5fa'; }
+  else if (bmi < 25) { bmiCat = '正常范围'; bmiColor = '#34d399'; }
+  else if (bmi < 30) { bmiCat = '超重'; bmiColor = '#fbbf24'; }
+  else { bmiCat = '肥胖'; bmiColor = '#ef4444'; }
+  document.getElementById('bmiCategory').textContent = bmiCat;
+  document.getElementById('bmiCategory').style.color = bmiColor;
+
+  const bmiPercent = Math.max(0, Math.min(100, ((bmi - 10) / (40 - 10)) * 100));
+  document.getElementById('bmiIndicator').style.left = bmiPercent + '%';
+
+  const idealLow = Math.round(18.5 * heightM * heightM * 10) / 10;
+  const idealHigh = Math.round(24.9 * heightM * heightM * 10) / 10;
+  document.getElementById('idealWeight').innerHTML = '基于 BMI 18.5-24.9，你的理想体重范围：<strong>' + idealLow + ' – ' + idealHigh + ' kg</strong>';
+
+  // Target Weight Progress
+  updateTargetProgress(weight, height);
+}
+
+function updateTargetProgress(currentWeight, height) {
+  const targetWeight = parseFloat(document.getElementById('targetWeight').value);
+  const targetDirection = document.getElementById('targetDirection').value;
+  const section = document.getElementById('targetProgressSection');
+
+  if (!targetWeight || targetWeight <= 0) {
+    section.style.display = 'none';
+    return;
+  }
+
+  section.style.display = 'block';
+  const diff = targetDirection === 'lose' ? currentWeight - targetWeight : targetWeight - currentWeight;
+  const totalChange = Math.abs(targetWeight - currentWeight);
+  const startWeight = targetDirection === 'lose' ? Math.max(currentWeight, targetWeight) : Math.min(currentWeight, targetWeight);
+  const endWeight = targetDirection === 'lose' ? targetWeight : targetWeight;
+
+  // Progress: how much of the goal is achieved
+  const progressPct = totalChange > 0 ? Math.min(100, Math.max(0, (diff / totalChange) * 100)) : 100;
+
+  document.getElementById('targetProgressFill').style.width = progressPct + '%';
+  document.getElementById('targetStartLabel').textContent = '当前: ' + currentWeight + ' kg';
+  document.getElementById('targetEndLabel').textContent = '目标: ' + targetWeight + ' kg';
+
+  const direction = targetDirection === 'lose' ? '减脂' : '增肌';
+  const remaining = Math.abs(targetWeight - currentWeight);
+  document.getElementById('targetProgressText').textContent = direction + ' · 还需 ' + remaining.toFixed(1) + ' kg';
+
+  // Scientific recommendation
+  const weeksNeededLow = Math.ceil(remaining / 1.0); // 1 kg/week max safe rate
+  const weeksNeededHigh = Math.ceil(remaining / 0.5); // 0.5 kg/week min safe rate
+
+  let recHTML = '📊 <strong>科学建议</strong>：';
+  if (targetDirection === 'lose') {
+    recHTML += 'ACSM 建议安全减重速率 0.5-1 kg/周（热量缺口 500-1000 kcal/天）。预计需要 <strong>' + weeksNeededHigh + '-' + weeksNeededLow + ' 周</strong>。';
+    if (currentWeight > targetWeight) {
+      recHTML += '当前进度：已减 ' + Math.max(0, diff).toFixed(1) + ' kg。';
+    }
+  } else {
+    recHTML += '增肌建议每周增重 0.25-0.5 kg，避免过多脂肪增长。预计需要 <strong>' + weeksNeededHigh + '-' + weeksNeededLow + ' 周</strong>。';
+    if (currentWeight < targetWeight) {
+      recHTML += '当前进度：已增 ' + Math.max(0, diff).toFixed(1) + ' kg。';
+    }
+  }
+  recHTML += ' 蛋白质摄入建议 ' + (document.getElementById('macroProtein').textContent) + ' g/天。';
+  document.getElementById('targetRecommendation').innerHTML = recHTML;
+}
+
+// ============ Event Listeners ============
+document.getElementById('gender-male').addEventListener('change', calculate);
+document.getElementById('gender-female').addEventListener('change', calculate);
+document.getElementById('age').addEventListener('input', calculate);
+document.getElementById('height').addEventListener('input', calculate);
+document.getElementById('weight').addEventListener('input', calculate);
+document.getElementById('bodyFat').addEventListener('input', calculate);
+document.getElementById('activityLevel').addEventListener('change', calculate);
+document.getElementById('goal').addEventListener('change', calculate);
+document.getElementById('targetWeight').addEventListener('input', calculate);
+document.getElementById('targetDirection').addEventListener('change', calculate);
+
+// ============ Exercise Panel Logic ============
+let workoutExercises = [];
+
+function populateExerciseDropdown() {
+  const select = document.getElementById('exSelect');
+  if (!select || select.options.length > 1) return;
+  const categories = [...new Set(exercises.map(function(e) { return e.category; }))];
+  categories.forEach(function(cat) {
+    const optgroup = document.createElement('optgroup');
+    optgroup.label = '━ ' + cat + ' ━';
+    optgroup.className = 'cat-optgroup';
+    exercises.filter(function(e) { return e.category === cat; }).forEach(function(ex) {
+      const opt = document.createElement('option');
+      opt.value = ex.name;
+      opt.textContent = ex.name + ' (MET ' + ex.met + ')';
+      optgroup.appendChild(opt);
+    });
+    select.appendChild(optgroup);
+  });
+}
+
+function addExercise() {
+  const select = document.getElementById('exSelect');
+  const weightEl = document.getElementById('exWeight');
+  const repsEl = document.getElementById('exReps');
+  const setsEl = document.getElementById('exSets');
+  const restEl = document.getElementById('exRest');
+  const exName = select.value;
+  if (!exName) return;
+  const ex = exercises.find(function(e) { return e.name === exName; });
+  const weightKg = parseFloat(weightEl.value) || 0;
+  const reps = parseInt(repsEl.value) || 10;
+  const sets = parseInt(setsEl.value) || 3;
+  const restSec = parseInt(restEl.value) || 90;
+  if (weightKg <= 0) { alert('请输入有效重量'); return; }
+  workoutExercises.push({ ex: ex, weightKg: weightKg, reps: reps, sets: sets, restSec: restSec });
+  renderWorkout();
+  updateWorkoutTotals();
+}
+
+function removeExercise(index) {
+  workoutExercises.splice(index, 1);
+  renderWorkout();
+  updateWorkoutTotals();
+}
+
+function resetWorkout() {
+  workoutExercises = [];
+  renderWorkout();
+  updateWorkoutTotals();
+}
+
+function renderWorkout() {
+  const list = document.getElementById('workoutList');
+  if (workoutExercises.length === 0) {
+    list.innerHTML = '<div class="workout-empty">👆 从上方选择训练动作开始构建你的训练计划</div>';
+    document.getElementById('workoutSummary').style.display = 'none';
+    return;
+  }
+  const bodyWeight = parseFloat(document.getElementById('weight').value) || 65;
+  list.innerHTML = workoutExercises.map(function(w, i) {
+    const result = calcExerciseCalories(w.ex, w.weightKg, w.reps, w.sets, w.restSec, bodyWeight);
+    return '<div class="workout-item">'
+      + '<div><div class="ex-name">' + w.ex.name + '</div>'
+      + '<div class="ex-detail">' + w.weightKg + 'kg × ' + w.reps + '次 × ' + w.sets + '组 | 做功 ' + result.workJoules.toLocaleString() + 'J | 用时约 ' + result.totalTimeMin + '分</div></div>'
+      + '<div class="ex-cal">🔥 ' + result.total + ' kcal</div>'
+      + '<div style="font-size:.68rem;color:var(--text-secondary);">做功 ' + result.workKcal + ' + MET ' + result.metKcal + '</div>'
+      + '<button class="ex-del" onclick="removeExercise(' + i + ')" title="移除">×</button>'
+      + '</div>';
+  }).join('');
+  document.getElementById('workoutSummary').style.display = 'flex';
+}
+
+function updateWorkoutTotals() {
+  const bodyWeight = parseFloat(document.getElementById('weight').value) || 65;
+  if (workoutExercises.length === 0) {
+    document.getElementById('workoutSummary').style.display = 'none';
+    updateIntegrationNote(0);
+    return;
+  }
+  let totalKcal = 0, totalWorkKcal = 0, totalMetKcal = 0, totalJoules = 0, totalTime = 0;
+  workoutExercises.forEach(function(w) {
+    const r = calcExerciseCalories(w.ex, w.weightKg, w.reps, w.sets, w.restSec, bodyWeight);
+    totalKcal += r.total;
+    totalWorkKcal += r.workKcal;
+    totalMetKcal += r.metKcal;
+    totalJoules += r.workJoules;
+    totalTime += r.totalTimeMin;
+  });
+  document.getElementById('workoutSummary').style.display = 'flex';
+  document.getElementById('workoutTotalCal').textContent = Math.round(totalKcal) + ' kcal';
+  document.getElementById('workoutDetail').textContent =
+    '做功消耗 ' + Math.round(totalWorkKcal) + ' kcal + MET消耗 ' + Math.round(totalMetKcal) + ' kcal | 总做功 ' + totalJoules.toLocaleString() + ' 焦耳 | 训练时长约 ' + Math.round(totalTime) + ' 分钟';
+  updateIntegrationNote(Math.round(totalKcal));
+}
+
+function updateIntegrationNote(exerciseKcal) {
+  const gender = document.getElementById('gender-male').checked ? 'male' : 'female';
+  const age = parseFloat(document.getElementById('age').value) || 30;
+  const height = parseFloat(document.getElementById('height').value) || 170;
+  const weight = parseFloat(document.getElementById('weight').value) || 65;
+  const activityMultiplier = parseFloat(document.getElementById('activityLevel').value);
+  const bmrM = bmrMifflinStJeor(gender, weight, height, age);
+  const dailyActivityKcal = Math.round(bmrM * activityMultiplier);
+  const totalWithExercise = dailyActivityKcal + exerciseKcal;
+  const note = document.getElementById('integrationNote');
+  if (note) {
+    note.style.display = exerciseKcal > 0 ? 'block' : 'none';
+    document.getElementById('integrateBmr').textContent = Math.round(bmrM).toLocaleString();
+    document.getElementById('integrateActivity').textContent = '×' + activityMultiplier;
+    document.getElementById('integrateEx').textContent = exerciseKcal.toLocaleString();
+    document.getElementById('integrateTotal').textContent = totalWithExercise.toLocaleString();
+  }
+}
+
+// Override calculate to also trigger auto-save and refresh workout
+const origCalculate = calculate;
+calculate = function() {
+  origCalculate();
+  triggerAutoSave();
+  if (workoutExercises.length > 0) {
+    renderWorkout();
+    updateWorkoutTotals();
+  }
+};
+
+// Exercise panel event listeners
+document.getElementById('exAddBtn').addEventListener('click', addExercise);
+document.getElementById('exResetBtn').addEventListener('click', resetWorkout);
+['exWeight','exReps','exSets','exRest'].forEach(function(id) {
+  document.getElementById(id).addEventListener('keydown', function(e) {
+    if (e.key === 'Enter') addExercise();
+  });
+});
+
+// Initialize
+populateExerciseDropdown();
+
+// Initialize meal renders on page load
+renderMeal('breakfast');
+renderMeal('lunch');
+renderMeal('dinner');
+renderMeal('snacks');
+
+// Initial calculation
+calculate();
+
+</script>
 </body>
 </html>

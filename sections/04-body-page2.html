@@ -1,0 +1,169 @@
+<!-- ================================================================ -->
+<!-- PAGE 2: TRAINING + FOOD DIARY -->
+<!-- ================================================================ -->
+<div class="page" id="page2">
+<div class="container">
+
+<!-- Page 2 Tabs -->
+<div class="page2-tabs">
+  <div class="page2-tab active" onclick="switchPage2Tab('exercise')" id="tabExercise">🏋️ 训练消耗计算器</div>
+  <div class="page2-tab" onclick="switchPage2Tab('diet')" id="tabDiet">🍽️ 饮食记录</div>
+</div>
+
+<!-- ===== EXERCISE CALCULATOR ===== -->
+<div class="page2-content active" id="contentExercise">
+<div class="card exercise-panel animate-in">
+  <div class="card-title"><span class="icon">🏋️</span> 训练消耗计算器 <span style="font-size:0.7rem;font-weight:400;color:var(--text-secondary);margin-left:8px;">物理做功 + MET代谢当量</span></div>
+
+  <p style="font-size:0.78rem;color:var(--text-secondary);margin-bottom:14px;">
+    📐 计算原理：<strong>热量 = (重量 × 9.8 × 动作行程 × 次数 × 组数) ÷ 肌肉效率(22%) ÷ 4184</strong> + MET时间消耗。
+    重量越大、行程越长，消耗越接近真实值。<br>
+    ⚠️ <strong>重量填写规则</strong>：杠铃填总重（杆+片）｜哑铃双臂同时填两只总重，单臂交替填单只｜绳索/器械填插片重量｜自重动作填体重
+  </p>
+
+  <div class="exercise-selector">
+    <div>
+      <span class="ex-label">训练动作</span>
+      <select id="exSelect">
+        <option value="">-- 选择动作 --</option>
+      </select>
+    </div>
+    <div>
+      <span class="ex-label">重量 (kg)</span>
+      <input type="number" id="exWeight" value="60" min="0" max="500" step="0.5" placeholder="kg">
+    </div>
+    <div>
+      <span class="ex-label">次数</span>
+      <input type="number" id="exReps" value="10" min="1" max="100" step="1">
+    </div>
+    <div>
+      <span class="ex-label">组数</span>
+      <input type="number" id="exSets" value="3" min="1" max="30" step="1">
+    </div>
+    <div>
+      <span class="ex-label">组间休息 (秒)</span>
+      <input type="number" id="exRest" value="90" min="30" max="300" step="5" class="rest-input">
+    </div>
+    <div class="ex-btn-row" style="display:flex;gap:8px;">
+      <button class="ex-btn ex-btn-add" id="exAddBtn">＋ 添加</button>
+      <button class="ex-btn" style="background:#dbeafe;color:#1e40af;" id="exSaveBtn" onclick="saveWorkout()">💾 保存</button>
+      <button class="ex-btn" style="background:#fef3c7;color:#92400e;" id="exLoadBtn" onclick="loadWorkout()">📂 加载</button>
+      <button class="ex-btn ex-btn-reset" id="exResetBtn">清空</button>
+    </div>
+  </div>
+
+  <!-- Workout List -->
+  <div class="workout-list" id="workoutList">
+    <div class="workout-empty">👆 从上方选择训练动作开始构建你的训练计划</div>
+  </div>
+
+  <!-- Workout Summary -->
+  <div class="workout-summary" id="workoutSummary" style="display:none;">
+    <div>
+      <div class="total-label">🏋️ 本次训练总消耗</div>
+      <div style="font-size:0.72rem;color:var(--text-secondary);margin-top:2px;" id="workoutDetail"></div>
+    </div>
+    <div class="total-cal" id="workoutTotalCal">0</div>
+  </div>
+
+  <!-- Integration note -->
+  <div style="margin-top:12px;padding:10px 14px;background:#fffbeb;border-radius:8px;font-size:0.78rem;color:#92400e;border:1px solid #fde68a;display:none;" id="integrationNote">
+    💡 <strong>每日总消耗</strong> = 静息 BMR <span id="integrateBmr">--</span> × 日常活动系数 <span id="integrateActivity">--</span> + 训练消耗 <span id="integrateEx">0</span> = <strong><span id="integrateTotal">--</span> kcal/天</strong>
+  </div>
+</div>
+</div>
+
+<!-- ===== FOOD DIARY ===== -->
+<div class="page2-content" id="contentDiet">
+<div class="card animate-in">
+  <div class="card-title"><span class="icon">🍽️</span> 饮食记录 <span style="font-size:0.7rem;font-weight:400;color:var(--text-secondary);margin-left:8px;">食物数据库收录 350+ 常见食物</span></div>
+
+  <!-- Food Search -->
+  <div class="food-search-box">
+    <input type="text" id="foodSearch" placeholder="🔍 搜索食物...（如：米饭、鸡胸肉、苹果）" oninput="searchFood()" onfocus="searchFood()">
+    <div class="food-search-results" id="foodSearchResults"></div>
+  </div>
+
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+    <!-- Left column: Breakfast + Lunch -->
+    <div>
+      <!-- Breakfast -->
+      <div class="meal-section" id="mealBreakfast">
+        <div class="meal-header breakfast" onclick="toggleMeal('breakfast')">
+          <span>🌅 早餐</span>
+          <span style="font-size:0.8rem;opacity:0.7;" id="breakfastTotal">0 kcal</span>
+        </div>
+        <div class="meal-items" id="breakfastItems">
+          <div style="font-size:0.78rem;color:var(--text-secondary);padding:8px 6px;">点击上方搜索食物，添加到早餐</div>
+        </div>
+      </div>
+
+      <!-- Lunch -->
+      <div class="meal-section" id="mealLunch">
+        <div class="meal-header lunch" onclick="toggleMeal('lunch')">
+          <span>🌞 午餐</span>
+          <span style="font-size:0.8rem;opacity:0.7;" id="lunchTotal">0 kcal</span>
+        </div>
+        <div class="meal-items" id="lunchItems">
+          <div style="font-size:0.78rem;color:var(--text-secondary);padding:8px 6px;">点击上方搜索食物，添加到午餐</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right column: Dinner + Snacks -->
+    <div>
+      <!-- Dinner -->
+      <div class="meal-section" id="mealDinner">
+        <div class="meal-header dinner" onclick="toggleMeal('dinner')">
+          <span>🌙 晚餐</span>
+          <span style="font-size:0.8rem;opacity:0.7;" id="dinnerTotal">0 kcal</span>
+        </div>
+        <div class="meal-items" id="dinnerItems">
+          <div style="font-size:0.78rem;color:var(--text-secondary);padding:8px 6px;">点击上方搜索食物，添加到晚餐</div>
+        </div>
+      </div>
+
+      <!-- Snacks -->
+      <div class="meal-section" id="mealSnacks">
+        <div class="meal-header snack" onclick="toggleMeal('snacks')">
+          <span>🍪 加餐/零食</span>
+          <span style="font-size:0.8rem;opacity:0.7;" id="snacksTotal">0 kcal</span>
+        </div>
+        <div class="meal-items" id="snacksItems">
+          <div style="font-size:0.78rem;color:var(--text-secondary);padding:8px 6px;">点击上方搜索食物，添加到加餐</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Daily Summary -->
+  <div class="daily-summary">
+    <div class="daily-stat" style="background:#fef2f2;">
+      <div class="stat-label">今日摄入</div>
+      <div class="stat-value" id="dailyCalTotal" style="color:#ef4444;">0</div>
+      <div class="stat-goal">kcal</div>
+    </div>
+    <div class="daily-stat" style="background:#fffbeb;">
+      <div class="stat-label">蛋白质</div>
+      <div class="stat-value" id="dailyProtein" style="color:#f59e0b;">0</div>
+      <div class="stat-goal">克</div>
+    </div>
+    <div class="daily-stat" style="background:#ecfdf5;">
+      <div class="stat-label">碳水</div>
+      <div class="stat-value" id="dailyCarbs" style="color:#10b981;">0</div>
+      <div class="stat-goal">克</div>
+    </div>
+    <div class="daily-stat" style="background:#f0f9ff;">
+      <div class="stat-label">脂肪</div>
+      <div class="stat-value" id="dailyFat" style="color:#0ea5e9;">0</div>
+      <div class="stat-goal">克</div>
+    </div>
+  </div>
+  <div style="text-align:right;margin-top:4px;">
+    <button onclick="clearMeals()" style="padding:6px 14px;border:1px solid #ef4444;border-radius:6px;background:#fff;color:#ef4444;font-size:0.75rem;cursor:pointer;font-family:inherit;">清空今日饮食</button>
+  </div>
+</div>
+</div>
+
+</div><!-- /container -->
+</div><!-- /page2 -->

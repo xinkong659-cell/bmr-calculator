@@ -1,0 +1,414 @@
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.1/dist/umd/supabase.min.js"></script>
+<script>
+// ================================================================
+// SUPABASE CONFIG & AUTH
+// ================================================================
+const SUPABASE_URL = 'https://whbbkoljhhkghhalbqjy.supabase.co';
+const SUPABASE_ANON_KEY = 'sb_publishable_4hqZ62WIEtAu49c9hQjvZw_ftRl7R8m';
+
+let supabase;
+try {
+  supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+} catch(e) {
+  console.error('Supabase init error:', e);
+  supabase = null;
+}
+
+let currentUser = null;
+let autoSaveTimer = null;
+const AUTO_SAVE_DELAY = 3000;
+let lastSavedProfile = null;
+
+// ================================================================
+// TOAST NOTIFICATIONS
+// ================================================================
+function showToast(msg, type) {
+  type = type || 'info';
+  const container = document.getElementById('toastContainer');
+  const toast = document.createElement('div');
+  toast.className = 'toast ' + type;
+  toast.textContent = msg;
+  container.appendChild(toast);
+  setTimeout(function() {
+    toast.style.opacity = '0';
+    toast.style.transition = 'opacity 0.3s';
+    setTimeout(function() { toast.remove(); }, 300);
+  }, 3000);
+}
+
+// ================================================================
+// AUTH MODAL
+// ================================================================
+let authMode = 'login';
+
+function showAuthModal() {
+  document.getElementById('authOverlay').classList.add('show');
+  document.getElementById('authError').textContent = '';
+  document.getElementById('authSuccess').textContent = '';
+  document.getElementById('authForm').reset();
+}
+
+function hideAuthModal() {
+  document.getElementById('authOverlay').classList.remove('show');
+}
+
+function switchAuthTab(mode) {
+  authMode = mode;
+  document.getElementById('tabLogin').classList.toggle('active', mode === 'login');
+  document.getElementById('tabRegister').classList.toggle('active', mode === 'register');
+  document.getElementById('authTitle').textContent = mode === 'login' ? '🔐 登录' : '📝 注册';
+  document.getElementById('authSubtitle').textContent = mode === 'login'
+    ? '登录以加载你的身体数据和训练记录'
+    : '创建一个独立账号，数据永久保存';
+  document.getElementById('authSubmitBtn').textContent = mode === 'login' ? '登录' : '注册';
+  document.getElementById('authError').textContent = '';
+  document.getElementById('authSuccess').textContent = '';
+}
+
+async function handleAuthSubmit(e) {
+  e.preventDefault();
+  if (!supabase) { showToast('服务暂不可用，请稍后再试', 'error'); return; }
+
+  const email = document.getElementById('authEmail').value.trim();
+  const password = document.getElementById('authPassword').value;
+  const errorEl = document.getElementById('authError');
+  const successEl = document.getElementById('authSuccess');
+  const submitBtn = document.getElementById('authSubmitBtn');
+  errorEl.textContent = '';
+  successEl.textContent = '';
+  submitBtn.disabled = true;
+  submitBtn.textContent = '处理中...';
+
+  try {
+    var result;
+    if (authMode === 'register') {
+      result = await supabase.auth.signUp({ email: email, password: password });
+      if (result.error) throw result.error;
+      if (result.data.user) {
+        successEl.textContent = '✓ 注册成功！已自动登录';
+        await handlePostAuth(result.data.user);
+      }
+    } else {
+      result = await supabase.auth.signInWithPassword({ email: email, password: password });
+      if (result.error) throw result.error;
+      if (result.data.user) {
+        await handlePostAuth(result.data.user);
+      }
+    }
+  } catch(err) {
+    errorEl.textContent = '⚠ ' + (err.message || '操作失败，请重试');
+  } finally {
+    submitBtn.disabled = false;
+    submitBtn.textContent = authMode === 'login' ? '登录' : '注册';
+  }
+}
+
+async function handlePostAuth(user) {
+  currentUser = user;
+  hideAuthModal();
+  updateUserUI();
+  showToast('✓ 登录成功！正在加载你的数据...', 'success');
+
+  try {
+    await supabase.from('user_data').upsert({
+      user_id: user.id,
+      profile: getCurrentProfile()
+    }, { onConflict: 'user_id', ignoreDuplicates: true });
+  } catch(e) {}
+
+  await loadProfile();
+  calculate();
+  showToast('✓ 数据已加载', 'success');
+}
+
+async function handleLogout() {
+  if (!supabase) return;
+  await supabase.auth.signOut();
+  currentUser = null;
+  lastSavedProfile = null;
+  updateUserUI();
+  calculate();
+  showToast('已退出登录。数据仍保存在云端，重新登录即可恢复。', 'info');
+}
+
+function updateUserUI() {
+  var emailEl = document.getElementById('userEmail');
+  var authBtn = document.getElementById('authBtn');
+  var logoutBtn = document.getElementById('logoutBtn');
+
+  if (currentUser) {
+    emailEl.textContent = currentUser.email;
+    authBtn.style.display = 'none';
+    logoutBtn.style.display = 'inline-block';
+  } else {
+    emailEl.textContent = '';
+    authBtn.style.display = 'inline-block';
+    logoutBtn.style.display = 'none';
+  }
+
+  updateSaveButtonState();
+  var saveBtn = document.getElementById('exSaveBtn');
+  var loadBtn = document.getElementById('exLoadBtn');
+  if (saveBtn) saveBtn.style.display = currentUser ? 'inline-block' : 'none';
+  if (loadBtn) loadBtn.style.display = currentUser ? 'inline-block' : 'none';
+}
+
+// ================================================================
+// DATA PERSISTENCE
+// ================================================================
+function getCurrentProfile() {
+  return {
+    gender: document.getElementById('gender-male').checked ? 'male' : 'female',
+    age: parseFloat(document.getElementById('age').value) || 30,
+    height: parseFloat(document.getElementById('height').value) || 170,
+    weight: parseFloat(document.getElementById('weight').value) || 65,
+    bodyFat: parseFloat(document.getElementById('bodyFat').value) || 20,
+    activityLevel: document.getElementById('activityLevel').value,
+    goal: document.getElementById('goal').value,
+    targetWeight: parseFloat(document.getElementById('targetWeight').value) || null,
+    targetDirection: document.getElementById('targetDirection').value
+  };
+}
+
+function applyProfile(profile) {
+  if (!profile) return;
+  if (profile.gender === 'female') {
+    document.getElementById('gender-female').checked = true;
+  } else {
+    document.getElementById('gender-male').checked = true;
+  }
+  document.getElementById('age').value = profile.age || 30;
+  document.getElementById('height').value = profile.height || 170;
+  document.getElementById('weight').value = profile.weight || 65;
+  if (profile.bodyFat !== undefined) {
+    document.getElementById('bodyFat').value = profile.bodyFat;
+    document.getElementById('bodyFatSlider').value = profile.bodyFat;
+  }
+  document.getElementById('activityLevel').value = profile.activityLevel || '1.55';
+  document.getElementById('goal').value = profile.goal || 'maintain';
+  if (profile.targetWeight) document.getElementById('targetWeight').value = profile.targetWeight;
+  if (profile.targetDirection) document.getElementById('targetDirection').value = profile.targetDirection;
+}
+
+async function saveProfile() {
+  if (!supabase || !currentUser) return;
+
+  var profile = getCurrentProfile();
+  if (lastSavedProfile && JSON.stringify(profile) === JSON.stringify(lastSavedProfile)) return;
+
+  try {
+    var result = await supabase.from('user_data').upsert({
+      user_id: currentUser.id,
+      profile: profile,
+      updated_at: new Date().toISOString()
+    }, { onConflict: 'user_id' });
+
+    if (result.error) throw result.error;
+    lastSavedProfile = JSON.parse(JSON.stringify(profile));
+  } catch(err) {
+    console.error('Save profile error:', err);
+    showToast('⚠ 自动保存失败：' + err.message, 'error');
+  }
+}
+
+function triggerAutoSave() {
+  if (!currentUser) return;
+  clearTimeout(autoSaveTimer);
+  autoSaveTimer = setTimeout(saveProfile, AUTO_SAVE_DELAY);
+}
+
+async function loadProfile() {
+  if (!supabase || !currentUser) return;
+
+  try {
+    var result = await supabase.from('user_data')
+      .select('profile')
+      .eq('user_id', currentUser.id)
+      .single();
+
+    if (result.error && result.error.code !== 'PGRST116') throw result.error;
+    if (result.data && result.data.profile) {
+      applyProfile(result.data.profile);
+      lastSavedProfile = JSON.parse(JSON.stringify(result.data.profile));
+    }
+  } catch(err) {
+    console.error('Load profile error:', err);
+  }
+}
+
+// ================================================================
+// WORKOUT SAVE / LOAD
+// ================================================================
+async function saveWorkout() {
+  if (!supabase || !currentUser) {
+    showToast('请先登录再保存训练计划', 'error');
+    showAuthModal();
+    return;
+  }
+  if (workoutExercises.length === 0) {
+    showToast('请先添加训练动作', 'error');
+    return;
+  }
+
+  try {
+    var exercisesData = workoutExercises.map(function(w) {
+      return {
+        name: w.ex.name,
+        category: w.ex.category,
+        weightKg: w.weightKg,
+        reps: w.reps,
+        sets: w.sets,
+        restSec: w.restSec
+      };
+    });
+
+    var result = await supabase.from('saved_workouts').insert({
+      user_id: currentUser.id,
+      name: '我的训练',
+      exercises: exercisesData,
+      updated_at: new Date().toISOString()
+    }, { onConflict: 'user_id' });
+
+    if (result.error) throw result.error;
+    showToast('✓ 训练计划已保存到云端！', 'success');
+  } catch(err) {
+    console.error('Save workout error:', err);
+    showToast('⚠ 保存失败：' + err.message, 'error');
+  }
+}
+
+async function loadWorkout() {
+  if (!supabase || !currentUser) {
+    showToast('请先登录再加载训练计划', 'error');
+    showAuthModal();
+    return;
+  }
+
+  try {
+    var result = await supabase.from('saved_workouts')
+      .select('exercises')
+      .eq('user_id', currentUser.id)
+      .order('updated_at', { ascending: false })
+      .limit(1)
+      .single();
+
+    if (result.error) {
+      if (result.error.code === 'PGRST116') {
+        showToast('未找到已保存的训练计划', 'info');
+      } else {
+        throw result.error;
+      }
+      return;
+    }
+
+    if (result.data && result.data.exercises && result.data.exercises.length > 0) {
+      workoutExercises = result.data.exercises.map(function(d) {
+        var ex = exercises.find(function(e) { return e.name === d.name; });
+        if (!ex) return null;
+        return {
+          ex: ex,
+          weightKg: d.weightKg,
+          reps: d.reps,
+          sets: d.sets,
+          restSec: d.restSec
+        };
+      }).filter(Boolean);
+
+      renderWorkout();
+      updateWorkoutTotals();
+      showToast('✓ 已加载 ' + workoutExercises.length + ' 个训练动作', 'success');
+    } else {
+      showToast('未找到已保存的训练动作', 'info');
+    }
+  } catch(err) {
+    console.error('Load workout error:', err);
+    showToast('⚠ 加载失败：' + err.message, 'error');
+  }
+}
+
+// ================================================================
+// SESSION CHECK ON LOAD
+// ================================================================
+async function checkSession() {
+  if (!supabase) { updateUserUI(); return; }
+
+  try {
+    var result = await supabase.auth.getSession();
+    if (result.data && result.data.session) {
+      currentUser = result.data.session.user;
+      updateUserUI();
+      await loadProfile();
+      calculate();
+    } else {
+      updateUserUI();
+    }
+  } catch(err) {
+    console.error('Session check error:', err);
+    updateUserUI();
+  }
+}
+
+if (supabase) {
+  supabase.auth.onAuthStateChange(function(event, session) {
+    if (event === 'SIGNED_IN' && session) {
+      currentUser = session.user;
+      updateUserUI();
+      loadProfile().then(function() { calculate(); });
+    } else if (event === 'SIGNED_OUT') {
+      currentUser = null;
+      lastSavedProfile = null;
+      updateUserUI();
+      calculate();
+    }
+  });
+}
+
+function manualSave() {
+  if (!currentUser) {
+    showToast('请先登录再保存数据', 'error');
+    showAuthModal();
+    return;
+  }
+  var btn = document.getElementById("saveProfileBtn");
+  var status = document.getElementById("saveStatus");
+  btn.textContent = "⏳ 保存中...";
+  btn.disabled = true;
+  btn.style.background = "var(--warning)";
+  saveProfile().then(function() {
+    btn.textContent = "✓ 已保存";
+    btn.style.background = "var(--success)";
+    status.textContent = "已同步 ✓";
+    setTimeout(function() {
+      btn.textContent = "💾 保存";
+      btn.style.background = "var(--primary)";
+      btn.disabled = false;
+    }, 2000);
+  }).catch(function(err) {
+    btn.textContent = "⚠ 保存失败";
+    btn.style.background = "var(--danger)";
+    status.textContent = "保存失败：" + (err.message || "未知错误");
+    btn.disabled = false;
+    setTimeout(function() {
+      btn.textContent = "💾 保存";
+      btn.style.background = "var(--primary)";
+    }, 2000);
+  });
+}
+
+function updateSaveButtonState() {
+  var btn = document.getElementById("saveProfileBtn");
+  var status = document.getElementById("saveStatus");
+  if (!btn) return;
+  if (currentUser) {
+    btn.disabled = false;
+    btn.style.opacity = "1";
+    status.textContent = "已登录 · 修改后自动保存";
+  } else {
+    btn.disabled = true;
+    btn.style.opacity = "0.5";
+    status.textContent = "登录后可保存";
+  }
+}
+
+checkSession();
+</script>
