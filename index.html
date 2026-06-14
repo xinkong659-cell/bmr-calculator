@@ -952,7 +952,7 @@ function manualSave() {
   }).catch(function(err) {
     btn.textContent = "⚠ 保存失败";
     btn.style.background = "var(--danger)";
-    status.textContent = "保存失败，请重试";
+    status.textContent = "保存失败：" + (err.message || "未知错误");
     btn.disabled = false;
     setTimeout(function() {
       btn.textContent = "💾 保存我的数据";
