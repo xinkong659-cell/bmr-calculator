@@ -1,0 +1,25 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(start *)",
+      "Bash(curl *)",
+      "Bash(git *)",
+      "Bash(rm *)",
+      "Bash(node *)",
+      "Bash(gh *)",
+      "Bash(cp *)",
+      "Bash(mv *)",
+      "Bash(mkdir *)",
+      "Bash(winget *)",
+      "Bash(cat *)",
+      "Bash(for *)",
+      "Bash(sleep *)",
+      "Bash(which *)",
+      "Bash(whoami)",
+      "Bash(ls *)",
+      "Bash(cd *)",
+      "WebFetch",
+      "WebSearch"
+    ]
+  }
+}
