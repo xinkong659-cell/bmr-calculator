@@ -373,6 +373,106 @@ body {
   to { opacity: 1; transform: translateY(0); }
 }
 .animate-in { animation: fadeInUp 0.4s ease forwards; }
+
+/* ===== Exercise Calculator ===== */
+.exercise-panel { margin-top: 24px; }
+.exercise-selector {
+  display: grid;
+  grid-template-columns: 1fr 100px 70px 70px 70px auto;
+  gap: 8px;
+  align-items: end;
+  margin-bottom: 12px;
+}
+@media (max-width: 860px) {
+  .exercise-selector {
+    grid-template-columns: 1fr 1fr 1fr;
+  }
+  .exercise-selector .ex-btn-row {
+    grid-column: 1 / -1;
+  }
+}
+.exercise-selector select, .exercise-selector input {
+  padding: 9px 10px;
+  border: 2px solid var(--border);
+  border-radius: 8px;
+  font-size: 0.85rem;
+  font-family: inherit;
+  background: #f8fafc;
+  outline: none;
+  width: 100%;
+}
+.exercise-selector select:focus, .exercise-selector input:focus {
+  border-color: var(--primary);
+}
+.exercise-selector .ex-label {
+  font-size: 0.7rem;
+  color: var(--text-secondary);
+  font-weight: 600;
+  margin-bottom: 2px;
+  display: block;
+}
+.ex-btn {
+  padding: 9px 16px;
+  border: none;
+  border-radius: 8px;
+  font-weight: 700;
+  font-size: 0.85rem;
+  cursor: pointer;
+  font-family: inherit;
+  transition: all 0.2s;
+}
+.ex-btn-add {
+  background: var(--primary);
+  color: #fff;
+}
+.ex-btn-add:hover { background: var(--primary-dark); }
+.ex-btn-reset {
+  background: #fee2e2;
+  color: #991b1b;
+}
+.ex-btn-reset:hover { background: #fecaca; }
+.workout-list { margin-top: 8px; }
+.workout-item {
+  display: grid;
+  grid-template-columns: 1fr auto auto auto;
+  gap: 12px;
+  align-items: center;
+  padding: 10px 14px;
+  background: #f8fafc;
+  border-radius: 8px;
+  margin-bottom: 6px;
+  font-size: 0.85rem;
+  border: 1px solid var(--border);
+}
+.workout-item .ex-name { font-weight: 700; }
+.workout-item .ex-detail { font-size: 0.75rem; color: var(--text-secondary); }
+.workout-item .ex-cal { font-weight: 700; color: var(--primary-dark); }
+.workout-item .ex-del {
+  color: #ef4444;
+  cursor: pointer;
+  font-weight: 700;
+  font-size: 1.1rem;
+  padding: 2px 8px;
+  border: none;
+  background: none;
+}
+.workout-item .ex-del:hover { background: #fee2e2; border-radius: 4px; }
+.workout-summary {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 14px 16px;
+  background: linear-gradient(135deg, #ecfdf5, #d1fae5);
+  border-radius: 10px;
+  margin-top: 10px;
+  border: 1px solid #a7f3d0;
+}
+.workout-summary .total-label { font-weight: 700; font-size: 0.9rem; }
+.workout-summary .total-cal { font-size: 1.8rem; font-weight: 800; color: #065f46; }
+.workout-empty { text-align: center; color: var(--text-secondary); font-size: 0.85rem; padding: 20px; }
+.rest-input { width: 70px !important; }
+.cat-optgroup { font-weight: 700; color: var(--primary-dark); }
+
 </style>
 </head>
 <body>
@@ -562,6 +662,66 @@ body {
 
 </div><!-- /main-grid -->
 
+
+<!-- ===== EXERCISE CALCULATOR ===== -->
+<div class="card exercise-panel animate-in">
+  <div class="card-title"><span class="icon">🏋️</span> 训练消耗计算器 <span style="font-size:0.7rem;font-weight:400;color:var(--text-secondary);margin-left:8px;">基于物理做功 + MET代谢当量</span></div>
+
+  <p style="font-size:0.78rem;color:var(--text-secondary);margin-bottom:14px;">
+    📐 计算原理：<strong>热量 = (重量 × 9.8 × 动作行程 × 次数 × 组数) ÷ 肌肉效率 ÷ 4184</strong> + MET时间消耗。
+    重量越大、行程越长，消耗越接近真实值。
+  </p>
+
+  <div class="exercise-selector">
+    <div>
+      <span class="ex-label">训练动作</span>
+      <select id="exSelect">
+        <option value="">-- 选择动作 --</option>
+      </select>
+    </div>
+    <div>
+      <span class="ex-label">重量 (kg)</span>
+      <input type="number" id="exWeight" value="60" min="0" max="500" step="0.5" placeholder="kg">
+    </div>
+    <div>
+      <span class="ex-label">次数</span>
+      <input type="number" id="exReps" value="10" min="1" max="100" step="1">
+    </div>
+    <div>
+      <span class="ex-label">组数</span>
+      <input type="number" id="exSets" value="3" min="1" max="30" step="1">
+    </div>
+    <div>
+      <span class="ex-label">组间休息 (秒)</span>
+      <input type="number" id="exRest" value="90" min="30" max="300" step="5" class="rest-input">
+    </div>
+    <div class="ex-btn-row" style="display:flex;gap:8px;">
+      <button class="ex-btn ex-btn-add" id="exAddBtn">＋ 添加</button>
+      <button class="ex-btn ex-btn-reset" id="exResetBtn">清空</button>
+    </div>
+  </div>
+
+  <!-- Workout List -->
+  <div class="workout-list" id="workoutList">
+    <div class="workout-empty">👆 从上方选择训练动作开始构建你的训练计划</div>
+  </div>
+
+  <!-- Workout Summary -->
+  <div class="workout-summary" id="workoutSummary" style="display:none;">
+    <div>
+      <div class="total-label">🏋️ 本次训练总消耗</div>
+      <div style="font-size:0.72rem;color:var(--text-secondary);margin-top:2px;" id="workoutDetail"></div>
+    </div>
+    <div class="total-cal" id="workoutTotalCal">0</div>
+  </div>
+
+  <!-- Integration note -->
+  <div style="margin-top:12px;padding:10px 14px;background:#fffbeb;border-radius:8px;font-size:0.78rem;color:#92400e;border:1px solid #fde68a;" id="integrationNote" style="display:none;">
+    💡 <strong>每日总消耗</strong> = 静息 BMR 平均 <span id="integrateBmr">--</span> × 日常活动系数 <span id="integrateActivity">--</span> + 训练消耗 <span id="integrateEx">0</span> = <strong><span id="integrateTotal">--</span> kcal/天</strong>
+  </div>
+</div>
+
+
 <!-- ===== REFERENCES ===== -->
 <div class="ref-section card">
   <h3>📚 科学参考文献</h3>
@@ -722,6 +882,110 @@ const goalAdjustments = {
   'moderateGain': { label: '🏋️ 适度增重 — 每日目标热量 (+500 kcal)', adjustment: 500 },
 };
 
+
+// ============ Exercise Database ============
+// Each exercise: { name, category, rom (range of motion in meters), met }
+// ROM values represent the vertical distance the weight travels per rep
+// MET values from Compendium of Physical Activities (2011 update) for resistance training
+const exercises = [
+  // ── 胸部 Chest ──
+  { name: '杠铃卧推', category: '胸部', rom: 0.50, met: 6.0 },
+  { name: '哑铃卧推', category: '胸部', rom: 0.50, met: 6.0 },
+  { name: '上斜杠铃卧推', category: '胸部', rom: 0.50, met: 6.0 },
+  { name: '上斜哑铃卧推', category: '胸部', rom: 0.50, met: 5.5 },
+  { name: '下斜卧推', category: '胸部', rom: 0.50, met: 6.0 },
+  { name: '哑铃飞鸟', category: '胸部', rom: 0.45, met: 5.0 },
+  { name: '绳索夹胸', category: '胸部', rom: 0.45, met: 5.0 },
+  { name: '双杠臂屈伸', category: '胸部', rom: 0.40, met: 6.5 },
+  { name: '俯卧撑', category: '胸部', rom: 0.35, met: 5.5 },
+  { name: '器械推胸', category: '胸部', rom: 0.45, met: 5.0 },
+
+  // ── 背部 Back ──
+  { name: '杠铃划船', category: '背部', rom: 0.60, met: 6.0 },
+  { name: '哑铃单臂划船', category: '背部', rom: 0.60, met: 5.5 },
+  { name: '引体向上', category: '背部', rom: 0.50, met: 7.0 },
+  { name: '高位下拉', category: '背部', rom: 0.50, met: 5.5 },
+  { name: '坐姿绳索划船', category: '背部', rom: 0.50, met: 5.0 },
+  { name: 'T杠划船', category: '背部', rom: 0.60, met: 6.0 },
+  { name: '面拉', category: '背部', rom: 0.50, met: 4.5 },
+  { name: '直臂下压', category: '背部', rom: 0.40, met: 4.5 },
+  { name: '硬拉(传统)', category: '背部', rom: 0.90, met: 8.0 },
+
+  // ── 肩部 Shoulders ──
+  { name: '杠铃推举', category: '肩部', rom: 0.50, met: 6.0 },
+  { name: '哑铃推举', category: '肩部', rom: 0.50, met: 5.5 },
+  { name: '阿诺德推举', category: '肩部', rom: 0.50, met: 5.5 },
+  { name: '侧平举', category: '肩部', rom: 0.60, met: 4.5 },
+  { name: '前平举', category: '肩部', rom: 0.55, met: 4.5 },
+  { name: '俯身飞鸟', category: '肩部', rom: 0.50, met: 4.5 },
+  { name: '杠铃提拉', category: '肩部', rom: 0.55, met: 5.5 },
+
+  // ── 手臂 Arms ──
+  { name: '杠铃弯举', category: '手臂', rom: 0.40, met: 5.0 },
+  { name: '哑铃弯举', category: '手臂', rom: 0.40, met: 4.5 },
+  { name: '锤式弯举', category: '手臂', rom: 0.40, met: 4.5 },
+  { name: '牧师凳弯举', category: '手臂', rom: 0.35, met: 4.5 },
+  { name: '绳索下压', category: '手臂', rom: 0.35, met: 4.5 },
+  { name: '仰卧臂屈伸', category: '手臂', rom: 0.35, met: 4.5 },
+  { name: '窄距卧推', category: '手臂', rom: 0.45, met: 5.5 },
+  { name: '集中弯举', category: '手臂', rom: 0.40, met: 4.0 },
+
+  // ── 腿部 Legs ──
+  { name: '杠铃深蹲', category: '腿部', rom: 0.80, met: 7.0 },
+  { name: '前蹲', category: '腿部', rom: 0.80, met: 7.0 },
+  { name: '保加利亚分腿蹲', category: '腿部', rom: 0.70, met: 6.5 },
+  { name: '罗马尼亚硬拉', category: '腿部', rom: 0.80, met: 7.0 },
+  { name: '腿举', category: '腿部', rom: 0.50, met: 6.0 },
+  { name: '哈克深蹲', category: '腿部', rom: 0.75, met: 6.5 },
+  { name: '弓步蹲', category: '腿部', rom: 0.70, met: 6.0 },
+  { name: '腿屈伸', category: '腿部', rom: 0.40, met: 5.0 },
+  { name: '腿弯举', category: '腿部', rom: 0.40, met: 5.0 },
+  { name: '臀推', category: '腿部', rom: 0.35, met: 5.5 },
+  { name: '提踵', category: '腿部', rom: 0.15, met: 4.5 },
+
+  // ── 核心 Core ──
+  { name: '卷腹', category: '核心', rom: 0.30, met: 4.0 },
+  { name: '悬垂举腿', category: '核心', rom: 0.35, met: 5.0 },
+  { name: '俄罗斯转体', category: '核心', rom: 0.30, met: 4.5 },
+  { name: '平板支撑', category: '核心', rom: 0.00, met: 3.5 },
+  { name: '腹肌轮', category: '核心', rom: 0.40, met: 5.5 },
+  { name: '山羊挺身', category: '核心', rom: 0.40, met: 5.0 },
+
+  // ── 全身/其他 Full Body ──
+  { name: '壶铃摇摆', category: '全身', rom: 0.90, met: 8.0 },
+  { name: '波比跳', category: '全身', rom: 0.50, met: 10.0 },
+  { name: '战绳', category: '全身', rom: 0.80, met: 9.0 },
+  { name: '农夫行走', category: '全身', rom: 0.05, met: 6.0 },
+];
+
+// Muscle efficiency constant (~22% for trained, ~18% for untrained)
+const MUSCLE_EFFICIENCY = 0.22;
+const GRAVITY = 9.8; // m/s²
+const KCAL_PER_JOULE = 1 / 4184;
+
+// Per-exercise calorie calculation
+function calcExerciseCalories(ex, weightKg, reps, sets, restSec, bodyWeightKg) {
+  // 1) Mechanical work component
+  const workPerRep = weightKg * GRAVITY * ex.rom; // joules per rep
+  const totalWork = workPerRep * reps * sets;
+  const workKcal = totalWork * KCAL_PER_JOULE / MUSCLE_EFFICIENCY;
+
+  // 2) MET time-based component (covers EPOC, core engagement, non-mechanical cost)
+  const activeTimeH = (reps * sets * 2.5) / 3600; // 2.5s per rep average
+  const restTimeH = ((sets - 1) * restSec) / 3600;
+  const totalTimeH = activeTimeH + restTimeH;
+  const metKcal = ex.met * bodyWeightKg * Math.max(totalTimeH, activeTimeH * 1.5);
+
+  return {
+    workKcal: Math.round(workKcal * 10) / 10,
+    metKcal: Math.round(metKcal * 10) / 10,
+    total: Math.round((workKcal + metKcal) * 10) / 10,
+    workJoules: Math.round(totalWork),
+    activeTimeMin: Math.round(activeTimeH * 60 * 10) / 10,
+    totalTimeMin: Math.round(totalTimeH * 60 * 10) / 10,
+  };
+}
+
 // ============ Calculate ============
 function calculate() {
   const gender = els.genderMale.checked ? 'male' : 'female';
@@ -868,6 +1132,183 @@ els.optToggle.addEventListener('click', () => {
 
 // ============ Initial Calculation ============
 calculate();
+
+// ============ Exercise Panel Logic ============
+
+// Populate exercise dropdown grouped by category
+function populateExerciseDropdown() {
+  const select = document.getElementById('exSelect');
+  if (!select || select.options.length > 1) return;
+
+  const categories = [...new Set(exercises.map(e => e.category))];
+  categories.forEach(cat => {
+    const optgroup = document.createElement('optgroup');
+    optgroup.label = '━ ' + cat + ' ━';
+    optgroup.className = 'cat-optgroup';
+    exercises.filter(e => e.category === cat).forEach(ex => {
+      const opt = document.createElement('option');
+      opt.value = ex.name;
+      opt.textContent = ex.name + ' (MET ' + ex.met + ')';
+      optgroup.appendChild(opt);
+    });
+    select.appendChild(optgroup);
+  });
+}
+
+// Workout state
+let workoutExercises = [];
+
+function addExercise() {
+  const select = document.getElementById('exSelect');
+  const weightEl = document.getElementById('exWeight');
+  const repsEl = document.getElementById('exReps');
+  const setsEl = document.getElementById('exSets');
+  const restEl = document.getElementById('exRest');
+
+  const exName = select.value;
+  if (!exName) return;
+
+  const ex = exercises.find(e => e.name === exName);
+  const weightKg = parseFloat(weightEl.value) || 0;
+  const reps = parseInt(repsEl.value) || 10;
+  const sets = parseInt(setsEl.value) || 3;
+  const restSec = parseInt(restEl.value) || 90;
+
+  if (weightKg <= 0) { alert('请输入有效重量'); return; }
+
+  workoutExercises.push({ ex, weightKg, reps, sets, restSec });
+  renderWorkout();
+  updateWorkoutTotals();
+}
+
+function removeExercise(index) {
+  workoutExercises.splice(index, 1);
+  renderWorkout();
+  updateWorkoutTotals();
+}
+
+function resetWorkout() {
+  workoutExercises = [];
+  renderWorkout();
+  updateWorkoutTotals();
+}
+
+function renderWorkout() {
+  const list = document.getElementById('workoutList');
+  if (workoutExercises.length === 0) {
+    list.innerHTML = '<div class="workout-empty">从上方选择训练动作开始构建你的训练计划</div>';
+    document.getElementById('workoutSummary').style.display = 'none';
+    return;
+  }
+
+  const bodyWeight = parseFloat(els.weight.value) || 65;
+
+  list.innerHTML = workoutExercises.map((w, i) => {
+    const result = calcExerciseCalories(w.ex, w.weightKg, w.reps, w.sets, w.restSec, bodyWeight);
+    return '<div class="workout-item">' +
+      '<div>' +
+        '<div class="ex-name">' + w.ex.name + '</div>' +
+        '<div class="ex-detail">' + w.weightKg + 'kg × ' + w.reps + '次 × ' + w.sets + '组 | 做功 ' + result.workJoules.toLocaleString() + 'J | 用时约 ' + result.totalTimeMin + '分</div>' +
+      '</div>' +
+      '<div class="ex-cal">🔥 ' + result.total + ' kcal</div>' +
+      '<div style="font-size:0.68rem;color:var(--text-secondary);">做功 ' + result.workKcal + ' + MET ' + result.metKcal + '</div>' +
+      '<button class="ex-del" onclick="removeExercise(' + i + ')" title="移除">×</button>' +
+    '</div>';
+  }).join('');
+
+  document.getElementById('workoutSummary').style.display = 'flex';
+}
+
+function updateWorkoutTotals() {
+  const bodyWeight = parseFloat(els.weight.value) || 65;
+
+  if (workoutExercises.length === 0) {
+    document.getElementById('workoutSummary').style.display = 'none';
+    updateIntegrationNote(0);
+    return;
+  }
+
+  let totalKcal = 0, totalWorkKcal = 0, totalMetKcal = 0, totalJoules = 0, totalTime = 0;
+  workoutExercises.forEach(w => {
+    const r = calcExerciseCalories(w.ex, w.weightKg, w.reps, w.sets, w.restSec, bodyWeight);
+    totalKcal += r.total;
+    totalWorkKcal += r.workKcal;
+    totalMetKcal += r.metKcal;
+    totalJoules += r.workJoules;
+    totalTime += r.totalTimeMin;
+  });
+
+  document.getElementById('workoutSummary').style.display = 'flex';
+  document.getElementById('workoutTotalCal').textContent = Math.round(totalKcal) + ' kcal';
+  document.getElementById('workoutDetail').textContent =
+    '做功消耗 ' + Math.round(totalWorkKcal) + ' kcal + MET消耗 ' + Math.round(totalMetKcal) + ' kcal | 总做功 ' + totalJoules.toLocaleString() + ' 焦耳 | 训练时长约 ' + Math.round(totalTime) + ' 分钟';
+
+  updateIntegrationNote(Math.round(totalKcal));
+}
+
+function updateIntegrationNote(exerciseKcal) {
+  const gender = els.genderMale.checked ? 'male' : 'female';
+  const age = parseFloat(els.age.value) || 30;
+  const height = parseFloat(els.height.value) || 170;
+  const weight = parseFloat(els.weight.value) || 65;
+  const activityMultiplier = parseFloat(els.activityLevel.value);
+  const goal = els.goal.value;
+
+  const bmrM = bmrMifflinStJeor(gender, weight, height, age);
+  const bmrHB = bmrHarrisBenedictRevised(gender, weight, height, age);
+  const bmrWHO = bmrWhoFaoUnu(gender, weight, height, age);
+  const bmrSCH = bmrSchofield(gender, weight, height, age);
+  const avgBMR = Math.round((bmrM + bmrHB + bmrWHO + bmrSCH) / 4);
+
+  const dailyActivityKcal = Math.round(avgBMR * activityMultiplier);
+  const totalWithExercise = dailyActivityKcal + exerciseKcal;
+  const goalAdjust = goalAdjustments[goal] ? goalAdjustments[goal].adjustment : 0;
+  const goalWithExercise = totalWithExercise + goalAdjust;
+
+  const note = document.getElementById('integrationNote');
+  if (note) {
+    note.style.display = exerciseKcal > 0 ? 'block' : 'none';
+    document.getElementById('integrateBmr').textContent = avgBMR.toLocaleString();
+    document.getElementById('integrateActivity').textContent = '×' + activityMultiplier;
+    document.getElementById('integrateEx').textContent = exerciseKcal.toLocaleString();
+    document.getElementById('integrateTotal').textContent = totalWithExercise.toLocaleString();
+
+    const goalLabel = document.getElementById('goalLabel');
+    const goalCalories = document.getElementById('goalCalories');
+    if (exerciseKcal > 0 && goalLabel && goalCalories) {
+      goalCalories.textContent = goalWithExercise.toLocaleString();
+      goalLabel.textContent = goalAdjustments[goal].label.replace('每日目标热量', '每日目标热量（含训练）');
+    } else if (goalLabel && goalCalories) {
+      const tdee = Math.round(avgBMR * activityMultiplier);
+      const goalCal = Math.round(tdee + goalAdjust);
+      goalCalories.textContent = goalCal.toLocaleString();
+      goalLabel.textContent = goalAdjustments[goal].label;
+    }
+  }
+}
+
+// Override calculate to refresh workout display when body params change
+const origCalculate = calculate;
+calculate = function() {
+  origCalculate();
+  if (workoutExercises.length > 0) {
+    renderWorkout();
+    updateWorkoutTotals();
+  }
+};
+
+// Event Listeners for Exercise Panel
+document.getElementById('exAddBtn').addEventListener('click', addExercise);
+document.getElementById('exResetBtn').addEventListener('click', resetWorkout);
+['exWeight', 'exReps', 'exSets', 'exRest'].forEach(id => {
+  document.getElementById(id).addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') addExercise();
+  });
+});
+
+// Populate dropdown on load
+populateExerciseDropdown();
+
 </script>
 
 </body>
