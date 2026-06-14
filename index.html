@@ -1107,23 +1107,26 @@ checkSession();
 
   <!-- ===== RESULTS PANEL ===== -->
 <div>
-  <!-- TDEE -->
+  <!-- TDEE + BMR + Goal Combined -->
   <div class="tdee-section animate-in">
-    <h3>📊 每日总能量消耗 (TDEE)</h3>
-    <div class="tdee-value" id="tdeeValue">--</div>
-    <span class="tdee-activity-label" id="tdeeActivityLabel">中度活动</span>
-    <div class="tdee-note" id="tdeeNote"></div>
-  </div>
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:12px;">
+      <div style="flex:1;min-width:200px;">
+        <h3>📊 每日总能量消耗 (TDEE)</h3>
+        <div class="tdee-value" id="tdeeValue">--</div>
+        <span class="tdee-activity-label" id="tdeeActivityLabel">中度活动</span>
+      </div>
+      <div style="text-align:right;min-width:140px;">
+        <div style="font-size:0.7rem;opacity:0.7;">基础代谢 (BMR)</div>
+        <div style="font-size:1.6rem;font-weight:700;" id="tdeeBmrValue">--</div>
+        <div style="font-size:0.6rem;opacity:0.55;margin-top:2px;" id="tdeeBmrSource"></div>
+      </div>
+    </div>
 
-  <!-- BMR Comparison -->
-  <div class="card animate-in" style="margin-bottom: 20px;">
-    <div class="results-header">
-      <h2>📐 各公式 BMR 对比</h2>
-      <span style="font-size:0.75rem;color:var(--text-secondary);" id="avgBmrLabel"></span>
+    <!-- Goal Quick Cards -->
+    <div style="display:flex;gap:8px;margin-top:14px;flex-wrap:wrap;" id="goalQuickCards">
     </div>
-    <div class="bmr-grid" id="bmrGrid">
-      <!-- Populated by JS -->
-    </div>
+
+    <div class="tdee-note" id="tdeeNote" style="margin-top:10px;"></div>
   </div>
 
   <!-- Macro + BMI row -->
@@ -1176,15 +1179,7 @@ checkSession();
     </div>
   </div>
 
-  <!-- Daily Calorie Target -->
-  <div class="card animate-in" style="text-align:center; background:linear-gradient(135deg,#fef3c7,#fffbeb);">
-    <div style="font-size:0.85rem;color:var(--text-secondary);" id="goalLabel">🎯 保持体重 — 每日目标热量</div>
-    <div style="font-size:2.5rem;font-weight:800;color:#b45309;" id="goalCalories">--</div>
-    <div style="font-size:0.75rem;color:var(--text-secondary);">kcal / 天</div>
-  </div>
-</div>
-
-</div><!-- /main-grid -->
+  </div><!-- /main-grid -->
 
 
 <!-- ===== EXERCISE CALCULATOR ===== -->
@@ -1556,31 +1551,46 @@ function calculate() {
 
   // ===== Render =====
 
-  // BMR Cards — show both resting BMR and activity-adjusted TDEE per formula
-  els.bmrGrid.innerHTML = formulas.map((f, i) => {
-    const tdeePerFormula = Math.round(f.value * tdeeMultiplier);
-    return `
-    <div class="bmr-card ${f.recommended ? 'recommended' : ''} animate-in" style="animation-delay:${i*0.05}s">
-      <div class="formula-name">${f.name}${f.note ? ' <span style="font-size:0.7rem;color:#f59e0b;">(' + f.note + ')</span>' : ''}</div>
-      <div class="bmr-value">${tdeePerFormula.toLocaleString()}</div>
-      <div class="bmr-unit">kcal / 天 <span style="font-size:0.7rem;color:var(--text-secondary);">(含活动 ×${tdeeMultiplier})</span></div>
-      <div style="font-size:0.75rem;color:var(--text-secondary);margin-top:2px;">
-        静息 BMR: ${f.value.toLocaleString()} kcal
-      </div>
-      <div class="formula-year">📅 ${f.year}</div>
-    </div>
-  `}).join('');
+  // BMR display — Mifflin-St Jeor only (recommended by AND)
+  const bmrMifflin = formulas.find(f => f.key === 'mifflin');
+  if (bmrMifflin) {
+    document.getElementById('tdeeBmrValue').textContent = bmrMifflin.value.toLocaleString() + ' kcal';
+    document.getElementById('tdeeBmrSource').innerHTML = 'Mifflin-St Jeor (1990)<br>AND 推荐 · 最准确';
+  }
 
-  els.avgBmrLabel.textContent = `各公式 TDEE 对比（静息 BMR × 活动系数 ${tdeeMultiplier}）`;
+  // Goal quick chips — all 5 targets at a glance
+  const goalChips = [
+    { key: 'moderateLoss', label: '🔥 减重', sub: '-500' },
+    { key: 'mildLoss', label: '🥗 温和减', sub: '-250' },
+    { key: 'maintain', label: '⚖️ 保持', sub: '±0' },
+    { key: 'mildGain', label: '💪 温和增', sub: '+250' },
+    { key: 'moderateGain', label: '🏋️ 增肌', sub: '+500' },
+  ];
+  const curGoal = els.goal.value;
+  const container = document.getElementById('goalQuickCards');
+  if (container) {
+    container.innerHTML = goalChips.map(g => {
+      const cal = Math.round(tdee + goalAdjustments[g.key].adjustment);
+      const act = g.key === curGoal;
+      return '<div class="goal-chip' + (act ? ' active' : '') + '"'
+        + ' onclick="els.goal.value=\'' + g.key + '\';calculate();"'
+        + ' style="flex:1;min-width:88px;padding:10px 6px;border-radius:10px;text-align:center;cursor:pointer;transition:all 0.2s;'
+        + 'background:' + (act ? 'rgba(255,255,255,0.25)' : 'rgba(255,255,255,0.08)') + ';'
+        + 'border:1.5px solid ' + (act ? 'rgba(255,255,255,0.5)' : 'rgba(255,255,255,0.12)') + ';'
+        + 'color:#fff;">'
+        + '<div style="font-size:0.68rem;opacity:0.85;">' + g.label + '</div>'
+        + '<div style="font-size:1.15rem;font-weight:800;">' + cal.toLocaleString() + '</div>'
+        + '<div style="font-size:0.6rem;opacity:0.6;">' + g.sub + ' kcal</div>'
+        + '</div>';
+    }).join('');
+  }
 
-  // TDEE
+  // // TDEE
   els.tdeeValue.textContent = tdee.toLocaleString() + ' kcal';
   els.tdeeActivityLabel.textContent = '🏃 ' + actInfo.label + ' (×' + activityLevel + ')';
   els.tdeeNote.textContent = '基于 4 种标准公式平均 BMR × 活动系数 | ' + actInfo.desc;
 
-  // Goal
-  els.goalLabel.textContent = goalInfo.label;
-  els.goalCalories.textContent = goalCal.toLocaleString();
+  // Goal chips rendered above
 
   // ===== Macro Nutrients =====
   // Protein based on body weight & activity level (g/kg), fat at 25%, carbs fill rest
@@ -1801,15 +1811,15 @@ function updateIntegrationNote(exerciseKcal) {
     document.getElementById('integrateTotal').textContent = totalWithExercise.toLocaleString();
 
     const goalLabel = document.getElementById('goalLabel');
-    const goalCalories = document.getElementById('goalCalories');
+    // removed
     if (exerciseKcal > 0 && goalLabel && goalCalories) {
-      goalCalories.textContent = goalWithExercise.toLocaleString();
-      goalLabel.textContent = goalAdjustments[goal].label.replace('每日目标热量', '每日目标热量（含训练）');
+      // removed
+      // removed
     } else if (goalLabel && goalCalories) {
       const tdee = Math.round(avgBMR * activityMultiplier);
       const goalCal = Math.round(tdee + goalAdjust);
-      goalCalories.textContent = goalCal.toLocaleString();
-      goalLabel.textContent = goalAdjustments[goal].label;
+      // removed
+      // removed
     }
   }
 }
