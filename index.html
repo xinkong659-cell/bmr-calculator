@@ -555,7 +555,8 @@ body {
 }
 
 </style>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.1/dist/umd/supabase.min.js">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.1/dist/umd/supabase.min.js"></script>
+<script>
 // ================================================================
 // SUPABASE CONFIG & AUTH
 // ================================================================
@@ -883,19 +884,6 @@ async function loadWorkout() {
     showToast('⚠ 加载失败：' + err.message, 'error');
   }
 }
-
-// ================================================================
-// OVERRIDE calculate() TO ADD AUTO-SAVE
-// ================================================================
-var origCalculate2 = calculate;
-calculate = function() {
-  origCalculate2();
-  triggerAutoSave();
-  if (workoutExercises.length > 0) {
-    renderWorkout();
-    updateWorkoutTotals();
-  }
-};
 
 // ================================================================
 // SESSION CHECK ON LOAD
@@ -1769,6 +1757,7 @@ function updateIntegrationNote(exerciseKcal) {
 const origCalculate = calculate;
 calculate = function() {
   origCalculate();
+  triggerAutoSave();
   if (workoutExercises.length > 0) {
     renderWorkout();
     updateWorkoutTotals();
