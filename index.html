@@ -146,6 +146,31 @@ body {
 .page2-content { display: none; }
 .page2-content.active { display: block; }
 
+/* Diet Recommendation Panel */
+.pagoda-card { padding: 0; overflow: hidden; }
+.pagoda-hero { background: linear-gradient(135deg, #ecfdf5 0%, #f0fdf4 40%, #dcfce7 100%); padding: 20px 24px; border-bottom: 1px solid #dcfce7; }
+.pagoda-hero-title { font-size: 0.85rem; font-weight: 600; color: var(--text-secondary); margin-bottom: 4px; }
+.pagoda-hero-cal { font-size: 2rem; font-weight: 900; color: #059669; letter-spacing: -0.02em; }
+.pagoda-hero-sub { font-size: 0.72rem; color: var(--text-secondary); margin-top: 4px; }
+.pagoda-hero-macros { display: flex; gap: 16px; margin-top: 8px; }
+.pagoda-hero-macros span { font-size: 0.78rem; font-weight: 600; }
+.gender-tips-card { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px 20px; margin: 16px 0; }
+.gt-title { font-weight: 700; font-size: 0.85rem; margin-bottom: 8px; }
+.gt-item { font-size: 0.78rem; color: var(--text-secondary); padding: 3px 0; padding-left: 12px; position: relative; }
+.gt-item::before { content: '•'; position: absolute; left: 0; color: var(--primary); font-weight: 700; }
+.pagoda-layer { border: 1px solid var(--border); border-radius: 12px; margin-bottom: 10px; overflow: hidden; cursor: pointer; transition: all 0.2s; background: var(--card); }
+.pagoda-layer:hover { border-color: var(--primary); }
+.pl-head { display: flex; align-items: center; gap: 10px; padding: 14px 18px; }
+.pl-icon { font-size: 1.3rem; }
+.pl-name { font-weight: 700; font-size: 0.85rem; flex: 1; }
+.pl-range { font-size: 0.78rem; color: var(--text-secondary); }
+.pl-arrow { font-size: 0.8rem; color: var(--text-secondary); margin-left: 4px; }
+.pl-body { padding: 0 18px 14px; border-top: 1px solid #f1f5f9; padding-top: 12px; display: none; }
+.pl-body.open { display: block; }
+.pl-why { background: #fffbeb; border-radius: 8px; padding: 10px 14px; margin-bottom: 10px; font-size: 0.75rem; color: #92400e; }
+.pl-foods { display: flex; flex-wrap: wrap; gap: 6px; }
+.pl-chip { display: inline-block; padding: 4px 12px; background: #f1f5f9; border-radius: 20px; font-size: 0.72rem; color: var(--text-secondary); }
+
 /* ===== Exercise Calculator ===== */
 .exercise-selector { display: grid; grid-template-columns: 1fr 100px 70px 70px 70px auto; gap: 8px; align-items: end; margin-bottom: 12px; }
 .exercise-selector select, .exercise-selector input { padding: 9px 10px; border: 2px solid var(--border); border-radius: 8px; font-size: 0.85rem; font-family: inherit; background: #f8fafc; outline: none; width: 100%; }
@@ -966,6 +991,7 @@ checkSession();
 <div class="page2-tabs">
   <div class="page2-tab active" onclick="switchPage2Tab('exercise')" id="tabExercise">🏋️ 训练消耗计算器</div>
   <div class="page2-tab" onclick="switchPage2Tab('diet')" id="tabDiet">🍽️ 饮食记录</div>
+  <div class="page2-tab" onclick="switchPage2Tab('recommend')" id="tabRecommend">🥗 饮食推荐</div>
 </div>
 
 <!-- ===== EXERCISE CALCULATOR ===== -->
@@ -1156,6 +1182,21 @@ checkSession();
 </div>
 </div>
 
+<!-- ===== DIET RECOMMENDATION ===== -->
+<div class="page2-content" id="contentRecommend">
+  <div class="card pagoda-card animate-in">
+    <div class="pagoda-hero">
+      <div class="pagoda-hero-title">📋 你的膳食框架</div>
+      <div class="pagoda-hero-cal" id="pagodaCal">-</div>
+      <div class="pagoda-hero-sub" id="pagodaLabel"></div>
+      <div class="pagoda-hero-macros" id="pagodaMacros"></div>
+    </div>
+    <div style="padding:16px 24px;" id="pagodaContent"></div>
+  </div>
+  <div class="gender-tips-card" id="genderTipsCard"></div>
+  <div id="pagodaLayers"></div>
+</div>
+
 </div><!-- /container -->
 </div><!-- /page2 -->
 <!-- Footer + Auth Modal + Toast -->
@@ -1208,8 +1249,11 @@ function switchPage(pageId) {
 function switchPage2Tab(tab) {
   document.getElementById('contentExercise').classList.toggle('active', tab === 'exercise');
   document.getElementById('contentDiet').classList.toggle('active', tab === 'diet');
+  document.getElementById('contentRecommend').classList.toggle('active', tab === 'recommend');
   document.getElementById('tabExercise').classList.toggle('active', tab === 'exercise');
   document.getElementById('tabDiet').classList.toggle('active', tab === 'diet');
+  document.getElementById('tabRecommend').classList.toggle('active', tab === 'recommend');
+  if (tab === 'recommend') renderDietRecommendation();
 }
 
 // ============ BMR Formulas ============
@@ -2893,8 +2937,8 @@ function updateTargetProgress(currentWeight, height) {
 }
 
 // ============ Event Listeners ============
-document.getElementById('gender-male').addEventListener('change', calculate);
-document.getElementById('gender-female').addEventListener('change', calculate);
+document.getElementById('gender-male').addEventListener('change', function(){ calculate(); renderCycleCard(); });
+document.getElementById('gender-female').addEventListener('change', function(){ calculate(); renderCycleCard(); });
 document.getElementById('age').addEventListener('input', calculate);
 document.getElementById('height').addEventListener('input', calculate);
 document.getElementById('weight').addEventListener('input', calculate);
@@ -3307,7 +3351,16 @@ function renderCycleCard() {
   var card = document.getElementById('cycleCard');
   if (!card) return;
   var gender = document.getElementById('gender-male').checked ? 'male' : 'female';
-  if (gender !== 'female' || !cycleData || !cycleData.lastPeriod) { card.style.display = 'none'; return; }
+  if (gender !== 'female') { card.style.display = 'none'; return; }
+  // Show setup card if no cycle data yet
+  if (!cycleData || !cycleData.lastPeriod) {
+    card.style.display = 'flex';
+    card.innerHTML = '<div style="font-size:1.5rem;margin-right:10px;">🌸</div>' +
+      '<div style="flex:1;"><div style="font-weight:700;font-size:0.85rem;">生理周期追踪</div>' +
+      '<div style="font-size:0.72rem;color:var(--text-secondary);">了解你的身体节律，获得更精准的营养建议</div></div>' +
+      '<button onclick="setLastPeriod()" style="padding:6px 14px;border:none;border-radius:8px;background:linear-gradient(135deg,#f472b6,#e879f9);color:#fff;font-size:0.75rem;font-weight:600;cursor:pointer;font-family:inherit;">设置</button>';
+    return;
+  }
   var lp = new Date(cycleData.lastPeriod), now = new Date();
   var diff = Math.floor((now - lp) / 86400000);
   if (diff < 0) { card.style.display = 'none'; return; }
@@ -3338,6 +3391,125 @@ function setLastPeriod() {
   showToast('周期已更新', 'success');
 }
 
+// ============ Diet Recommendation Engine ============
+var pagodaLevels = {
+  1400: { grain:[150,200], veg:[300,350], fruit:[150,200], meat:[30,40], fish:[30,40], egg:[40,40], dairy:[300,300], soyNut:[15,20], oil:[15,20], label:'1400 kcal · 减脂女性' },
+  1600: { grain:[180,225], veg:[350,400], fruit:[180,200], meat:[40,50], fish:[40,50], egg:[40,50], dairy:[300,300], soyNut:[20,25], oil:[18,22], label:'1600 kcal · 减脂男性 / 保持女性' },
+  1800: { grain:[200,250], veg:[400,400], fruit:[200,250], meat:[50,60], fish:[50,60], egg:[40,50], dairy:[300,350], soyNut:[20,28], oil:[20,25], label:'1800 kcal · 轻运动女性' },
+  2000: { grain:[225,275], veg:[400,450], fruit:[250,300], meat:[60,75], fish:[60,75], egg:[40,50], dairy:[350,400], soyNut:[25,30], oil:[22,28], label:'2000 kcal · 保持男性 / 运动女性' },
+  2200: { grain:[250,300], veg:[450,500], fruit:[280,350], meat:[70,85], fish:[70,85], egg:[50,50], dairy:[400,450], soyNut:[28,33], oil:[25,28], label:'2200 kcal · 增肌女性' },
+  2400: { grain:[275,325], veg:[500,500], fruit:[300,350], meat:[80,100], fish:[80,100], egg:[50,50], dairy:[450,500], soyNut:[30,35], oil:[25,30], label:'2400 kcal · 增肌男性' },
+  2600: { grain:[300,350], veg:[500,550], fruit:[350,350], meat:[90,110], fish:[90,110], egg:[50,50], dairy:[500,500], soyNut:[30,35], oil:[28,30], label:'2600 kcal · 高强度训练' }
+};
+var pagodaGroups = [
+  { key:'grain', icon:'🌾', name:'谷薯类', unit:'g', col:'#f59e0b',
+    why:'碳水化合物是身体和大脑的主要能量来源。优先选择全谷物（糙米、燕麦、全麦面包），它们富含膳食纤维，消化慢、扛饿更稳。',
+    foods:[['米饭',116,'1碗≈200g'],['馒头',223,'1个≈100g'],['全麦面包',246,'2片≈60g'],['燕麦',367,'1碗≈50g(干)'],['红薯',86,'1个≈200g'],['玉米',112,'1根≈200g'],['面条(煮)',116,'1碗≈200g'],['糙米饭',123,'1碗≈200g'],['小米粥',46,'1碗≈250g'],['荞麦面',130,'1碗≈150g'],['土豆',76,'1个≈150g']] },
+  { key:'veg', icon:'🥬', name:'蔬菜', unit:'g', col:'#10b981',
+    why:'蔬菜富含维生素、矿物质和膳食纤维。深色蔬菜（菠菜、西兰花、胡萝卜）营养更丰富。每天至少一半蔬菜为深色。',
+    foods:[['西兰花',34,'1小碗≈150g'],['菠菜',23,'1把≈200g'],['番茄',18,'1个≈150g'],['黄瓜',15,'1根≈150g'],['胡萝卜',37,'1根≈120g'],['白菜',17,'1盘≈250g'],['青椒',20,'1个≈100g'],['油菜',23,'1盘≈200g'],['生菜',15,'1盘≈200g'],['茄子',21,'1根≈200g'],['冬瓜',11,'1盘≈300g'],['南瓜',22,'1块≈200g']] },
+  { key:'fruit', icon:'🍎', name:'水果', unit:'g', col:'#ef4444',
+    why:'水果提供维生素C、钾和抗氧化物。优先选择完整水果而非果汁——完整水果保留了膳食纤维，血糖上升更平稳。',
+    foods:[['苹果',52,'1个≈200g'],['香蕉',91,'1根≈120g'],['橙子',47,'1个≈200g'],['猕猴桃',56,'1个≈80g'],['草莓',32,'1盒≈250g'],['葡萄',43,'1串≈200g'],['梨',44,'1个≈200g'],['火龙果',51,'半个≈200g'],['蓝莓',57,'1盒≈125g'],['柚子',38,'2瓣≈200g']] },
+  { key:'meat', icon:'🥩', name:'畜禽肉', unit:'g', col:'#f472b6',
+    why:'优质蛋白质来源，含B族维生素和铁。红肉（猪牛羊）补铁更好，白肉（鸡鸭）脂肪更低。每周至少吃2次鱼。',
+    foods:[['鸡胸肉',133,'1块≈150g'],['鸡腿肉',181,'1个≈100g'],['猪瘦肉',143,'1份≈100g'],['牛肉(瘦)',125,'1份≈100g'],['猪肝',129,'1份≈80g'],['鸭肉',240,'1份≈100g'],['羊肉(瘦)',118,'1份≈100g']] },
+  { key:'fish', icon:'🐟', name:'鱼虾类', unit:'g', col:'#06b6d4',
+    why:'水产含优质蛋白和Omega-3（尤其是三文鱼、鲭鱼）。Omega-3可降低炎症、有益心血管健康。建议每周2-3次。',
+    foods:[['三文鱼',208,'1块≈150g'],['虾仁',48,'1份≈100g'],['鲈鱼',105,'1条≈200g'],['带鱼',127,'1段≈100g'],['龙利鱼',79,'1片≈150g'],['鳕鱼',82,'1块≈150g'],['蛤蜊',56,'1份≈200g']] },
+  { key:'egg', icon:'🥚', name:'蛋类', unit:'g', col:'#fbbf24',
+    why:'鸡蛋是完美的蛋白质来源，含有所有必需氨基酸。蛋黄含卵磷脂和维生素D。健康人每天1个蛋完全合适。',
+    foods:[['鸡蛋',144,'1个≈50g'],['鹌鹑蛋',160,'5个≈50g'],['鸭蛋',180,'1个≈70g']] },
+  { key:'dairy', icon:'🥛', name:'奶制品', unit:'g', col:'#a78bfa',
+    why:'奶制品是钙的最佳来源。钙不仅对骨骼重要，也和肌肉收缩、神经信号传导有关。乳糖不耐受可选酸奶或豆浆替代。',
+    foods:[['纯牛奶',54,'1杯≈250ml'],['酸奶',72,'1杯≈200g'],['奶酪',328,'1片≈20g'],['豆浆(无糖)',31,'1杯≈250ml']] },
+  { key:'soyNut', icon:'🫘', name:'大豆坚果', unit:'g', col:'#8b5cf6',
+    why:'大豆含植物性完全蛋白，坚果含健康的不饱和脂肪酸。每天一把坚果（约15-20g），有助于心血管健康。',
+    foods:[['豆腐',76,'1块≈200g'],['豆浆',31,'1杯≈250ml'],['核桃',654,'1把≈15g'],['杏仁',578,'1把≈15g'],['花生',563,'1把≈20g'],['腰果',553,'1把≈15g']] }
+];
+
+function getPagodaLevel(tdee) {
+  var keys = Object.keys(pagodaLevels).map(Number).sort(function(a,b){return a-b;});
+  var best = keys[0];
+  for (var i = 0; i < keys.length; i++) {
+    if (tdee <= keys[i] + 100) { best = keys[i]; break; }
+    best = keys[i];
+  }
+  return best;
+}
+
+function renderDietRecommendation() {
+  var gender = document.getElementById('gender-male').checked ? 'male' : 'female';
+  var W = parseFloat(document.getElementById('weight').value) || 65;
+  var H = parseFloat(document.getElementById('height').value) || 170;
+  var A = parseInt(document.getElementById('age').value) || 30;
+  var activity = parseFloat(document.getElementById('activity').value) || 1.55;
+  var bmr = bmrMifflinStJeor(gender, W, H, A);
+  var tdee = Math.round(bmr * activity);
+  var goalCal = tdee;
+  var goalEl = document.getElementById('goalLabel');
+  if (goalEl) {
+    var goalText = goalEl.textContent || '';
+    if (goalText.includes('减脂')){ goalCal = Math.round(tdee - 500); }
+    else if (goalText.includes('增肌')){ goalCal = Math.round(tdee + 300); }
+    else if (goalText.includes('冲刺减脂')){ goalCal = Math.round(tdee - 750); }
+  }
+  goalCal = Math.max(1200, goalCal);
+
+  // Macros
+  var protein = Math.round(W * (gender === 'male' ? 1.6 : 1.3));
+  var fat = Math.round((goalCal * 0.25) / 9);
+  var carbs = Math.round((goalCal - protein * 4 - fat * 9) / 4);
+
+  // Hero
+  var level = getPagodaLevel(goalCal);
+  var pagoda = pagodaLevels[level];
+  var scale = goalCal / level;
+  document.getElementById('pagodaCal').textContent = goalCal + ' kcal';
+  document.getElementById('pagodaLabel').textContent = pagoda.label + ' · 缩放 ' + Math.round(scale * 100) + '%';
+  document.getElementById('pagodaMacros').innerHTML = '<span style="color:#F5B400;">🥩 蛋白 ' + protein + 'g</span><span style="color:#7C5CFF;">🍚 碳水 ' + carbs + 'g</span><span style="color:#F2843B;">🥑 脂肪 ' + fat + 'g</span>';
+
+  // Gender tips
+  var gtCard = document.getElementById('genderTipsCard');
+  if (gender === 'male') {
+    gtCard.innerHTML = '<div class="gt-title">👨 男性营养要点</div>' +
+      '<div class="gt-item">男性代谢偏高，蛋白质需求更大（按体重 1.6g/kg 计算）</div>' +
+      '<div class="gt-item">注意红肉摄入量，优先选择瘦肉部位</div>' +
+      '<div class="gt-item">需关注心血管健康，多摄入 Omega-3（鱼、亚麻籽）</div>' +
+      '<div class="gt-item">饮酒会额外增加热量摄入，建议控制</div>';
+  } else {
+    gtCard.innerHTML = '<div class="gt-title">👩 女性营养要点</div>' +
+      '<div class="gt-item">需注意铁和钙的补充（经期铁流失）</div>' +
+      '<div class="gt-item">推荐每周 1-2 次动物肝脏或红肉补铁</div>' +
+      '<div class="gt-item">钙摄入不足易导致骨质疏松风险上升</div>' +
+      '<div class="gt-item">大豆制品中的异黄酮有助于调节雌激素水平</div>';
+  }
+
+  // Pagoda layers
+  var layersHtml = '';
+  for (var i = 0; i < pagodaGroups.length; i++) {
+    var g = pagodaGroups[i];
+    var range = pagoda[g.key];
+    var gLow = Math.round(range[0] * scale);
+    var gHigh = Math.round(range[1] * scale);
+    layersHtml += '<div class="pagoda-layer" style="border-left:4px solid ' + g.col + ';" onclick="togglePagodaLayer(this)">' +
+      '<div class="pl-head"><span class="pl-icon">' + g.icon + '</span><span class="pl-name">' + g.name + '</span><span class="pl-range">' + gLow + '-' + gHigh + g.unit + '/天</span><span class="pl-arrow">▸</span></div>' +
+      '<div class="pl-body"><div class="pl-why">💡 ' + g.why + '</div><div class="pl-foods">' +
+      g.foods.map(function(f){ return '<span class="pl-chip">' + f[0] + ' (' + f[1] + 'kcal, ' + f[2] + ')</span>'; }).join('') +
+      '</div></div></div>';
+  }
+  document.getElementById('pagodaLayers').innerHTML = layersHtml;
+}
+
+function togglePagodaLayer(el) {
+  var body = el.querySelector('.pl-body');
+  var arrow = el.querySelector('.pl-arrow');
+  if (!body || !arrow) return;
+  var isOpen = body.classList.contains('open');
+  body.classList.toggle('open', !isOpen);
+  arrow.textContent = isOpen ? '▸' : '▾';
+}
+
 // Initialize
 loadDietDates();
 loadDietTemplates();
@@ -3346,6 +3518,8 @@ loadMealLog(dietViewDate);
 updateDietStreak();
 renderWeekCalendar();
 populateExerciseDropdown();
+loadCycleData();
+renderCycleCard();
 
 // Initialize meal renders on page load
 renderMeal('breakfast');
